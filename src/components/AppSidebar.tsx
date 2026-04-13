@@ -11,7 +11,11 @@ const inactive =
 const active =
   "bg-cyan-500/10 text-cyan-800 shadow-sm ring-1 ring-cyan-500/30 dark:bg-white/15 dark:text-white dark:ring-white/20";
 
-export function AppSidebar() {
+type Props = {
+  initialTheme: "light" | "dark";
+};
+
+export function AppSidebar({ initialTheme }: Props) {
   const pathname = usePathname();
   const onEditor = pathname === "/" || pathname.startsWith("/offer-letter");
   const onDashboard = pathname === "/dashboard";
@@ -93,7 +97,7 @@ export function AppSidebar() {
       </nav>
 
       <div className="space-y-3 border-t border-slate-200 p-4 dark:border-slate-800">
-        <ThemeToggle />
+        <ThemeToggle initialTheme={initialTheme} />
         <button
           type="button"
           onClick={async () => {

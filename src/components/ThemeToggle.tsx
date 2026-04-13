@@ -12,26 +12,22 @@ function applyTheme(theme: Theme) {
   root.setAttribute("data-theme", theme);
 }
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "light";
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "dark" || stored === "light") return stored;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  });
+function persistTheme(theme: Theme) {
+  localStorage.setItem(STORAGE_KEY, theme);
+  document.cookie = `ems-theme=${theme}; path=/; max-age=31536000; samesite=lax`;
+}
+
+export function ThemeToggle({ initialTheme }: { initialTheme: Theme }) {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, theme);
+    persistTheme(theme);
     applyTheme(theme);
   }, [theme]);
 
   function onToggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    localStorage.setItem(STORAGE_KEY, next);
-    applyTheme(next);
   }
 
   return (

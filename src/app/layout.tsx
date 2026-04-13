@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/AppSidebar";
 import "./globals.css";
 
@@ -20,36 +21,25 @@ export const metadata: Metadata = {
     "Employee management and offer letter automation built with Next.js.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("ems-theme")?.value;
+  const theme = themeCookie === "dark" || themeCookie === "light" ? themeCookie : "light";
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-theme={theme}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased ${theme === "dark" ? "dark" : ""}`}
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(() => {
-  try {
-    const stored = localStorage.getItem("ems-theme");
-    const theme = stored === "dark" || stored === "light"
-      ? stored
-      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    document.documentElement.setAttribute("data-theme", theme);
-  } catch {}
-})();`,
-          }}
-        />
-      </head>
       <body className="min-h-full bg-transparent">
         <div className="flex min-h-screen">
-          <AppSidebar />
+          <AppSidebar initialTheme={theme} />
           <div className="flex min-w-0 flex-1 flex-col">{children}</div>
         </div>
       </body>
