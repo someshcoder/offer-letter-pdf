@@ -118,7 +118,9 @@ function writeStoredItems(items: LocalDashboardItem[]): void {
 
 function makeBlobUrl(item: LocalDashboardItem): string {
   const bytes = base64ToBytes(item.pdfBase64);
-  const blob = new Blob([bytes], { type: "application/pdf" });
+  const blobBuffer = new Uint8Array(bytes.byteLength);
+  blobBuffer.set(bytes);
+  const blob = new Blob([blobBuffer.buffer], { type: "application/pdf" });
   return URL.createObjectURL(blob);
 }
 
