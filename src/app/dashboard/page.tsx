@@ -73,16 +73,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen flex-1 px-4 py-6 sm:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="min-h-screen flex-1 px-3 py-4 sm:px-5 sm:py-6 md:px-6 lg:px-7 xl:px-8">
+      <div className="mx-auto w-full max-w-7xl space-y-5 sm:space-y-6">
         <header className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/70 sm:p-8">
           <div
-            className="pointer-events-none absolute inset-0 opacity-70"
+            className="pointer-events-none absolute inset-0 opacity-70 bg-[radial-gradient(circle_at_15%_10%,rgba(14,165,233,0.16),transparent_42%),radial-gradient(circle_at_80%_0%,rgba(99,102,241,0.14),transparent_38%)]"
             aria-hidden
-            style={{
-              background:
-                "radial-gradient(circle at 15% 10%, rgba(14,165,233,0.16), transparent 42%), radial-gradient(circle at 80% 0%, rgba(99,102,241,0.14), transparent 38%)",
-            }}
           />
           <div className="relative z-10">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-300">

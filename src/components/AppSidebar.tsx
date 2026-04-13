@@ -13,19 +13,31 @@ const active =
 
 type Props = {
   initialTheme: "light" | "dark";
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
 };
 
-export function AppSidebar({ initialTheme }: Props) {
+export function AppSidebar({ initialTheme, mobileOpen, onCloseMobile }: Props) {
   const pathname = usePathname();
   const onEditor = pathname === "/" || pathname.startsWith("/offer-letter");
   const onDashboard = pathname === "/dashboard";
   const onEmployees = pathname.startsWith("/employees");
 
   return (
-    <aside
-      className="sticky top-0 flex h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white/75 text-slate-900 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900 dark:text-slate-100"
-      aria-label="Main navigation"
-    >
+    <>
+      <div
+        className={`fixed inset-0 z-30 bg-slate-950/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={onCloseMobile}
+        aria-hidden
+      />
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex h-screen w-72 max-w-[85vw] shrink-0 flex-col border-r border-slate-200 bg-white/90 text-slate-900 shadow-xl backdrop-blur-xl transition-transform duration-300 dark:border-slate-800/80 dark:bg-slate-900 dark:text-slate-100 lg:sticky lg:top-0 lg:z-20 lg:w-72 lg:translate-x-0 lg:shadow-none ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        aria-label="Main navigation"
+      >
       <div className="border-b border-slate-200 p-5 dark:border-slate-800">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-indigo-400">
           EMS Suite
@@ -39,6 +51,7 @@ export function AppSidebar({ initialTheme }: Props) {
       <nav className="flex flex-1 flex-col gap-1 p-3">
         <Link
           href="/dashboard"
+          onClick={onCloseMobile}
           className={`${itemBase} ${onDashboard ? active : inactive}`}
         >
           <span
@@ -58,6 +71,7 @@ export function AppSidebar({ initialTheme }: Props) {
         </Link>
         <Link
           href="/employees"
+          onClick={onCloseMobile}
           className={`${itemBase} ${onEmployees ? active : inactive}`}
         >
           <span
@@ -77,6 +91,7 @@ export function AppSidebar({ initialTheme }: Props) {
         </Link>
         <Link
           href="/offer-letter"
+          onClick={onCloseMobile}
           className={`${itemBase} ${onEditor ? active : inactive}`}
         >
           <span
@@ -109,6 +124,7 @@ export function AppSidebar({ initialTheme }: Props) {
           Logout
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

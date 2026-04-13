@@ -200,8 +200,8 @@ export function PdfEditorShell({ userRole }: Props) {
 
   return (
     <div className="flex min-h-screen flex-1 flex-col bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <main className="mx-auto flex w-full max-w-400 flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:px-8 lg:py-8">
-        <section className="w-full shrink-0 self-start lg:w-[min(100%,420px)] xl:w-115">
+      <main className="mx-auto flex w-full max-w-[1800px] flex-1 flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-5 md:px-6 lg:flex-row lg:items-start lg:gap-6 lg:px-7 lg:py-6 xl:px-8">
+        <section className="w-full shrink-0 self-start lg:sticky lg:top-6 lg:w-[380px] xl:w-[420px]">
           <FormPanel
             documentKind={documentKind}
             onDocumentKindChange={setDocumentKind}
@@ -220,7 +220,7 @@ export function PdfEditorShell({ userRole }: Props) {
             serverMessage={serverMessage}
           />
         </section>
-        <section className="flex min-h-[min(76vh,52rem)] flex-1 flex-col lg:min-w-0">
+        <section className="flex min-h-[60vh] flex-1 flex-col lg:min-h-[76vh] lg:min-w-0">
           <PdfPreview fileUrl={previewUrl} />
         </section>
       </main>

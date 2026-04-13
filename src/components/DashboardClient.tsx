@@ -149,7 +149,7 @@ export function DashboardClient({
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6 sm:gap-7 lg:gap-8">
       {serverError ? (
         <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
           {serverError} Database records may be incomplete until the server connection is restored.
@@ -171,7 +171,7 @@ export function DashboardClient({
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total" value={stats.total} accent="from-slate-600 to-slate-800" />
         <StatCard
           label="Offer letters"
@@ -187,7 +187,7 @@ export function DashboardClient({
       </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <StatCard label="Employees" value={employeeTotal} accent="from-cyan-500 to-cyan-700" />
         <StatCard label="Admin" value={roleCounts.Admin} accent="from-rose-500 to-rose-700" />
         <StatCard label="HR" value={roleCounts.HR} accent="from-amber-500 to-amber-700" />
@@ -210,7 +210,7 @@ export function DashboardClient({
             {recentEmployees.map((emp) => (
               <li
                 key={emp.id}
-                className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700"
               >
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-white">{emp.name}</p>
@@ -236,7 +236,7 @@ export function DashboardClient({
               key={f.id}
               type="button"
               onClick={() => setFilter(f.id)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4 sm:text-sm ${
                 active
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                   : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-700/80"
@@ -264,11 +264,11 @@ export function DashboardClient({
           type from the editor.
         </p>
       ) : (
-        <ul className="grid gap-5 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
           {filtered.map((row) => (
             <li
               key={row.id}
-              className="group flex flex-col rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/90 dark:hover:border-indigo-500/40"
+              className="group flex h-full flex-col rounded-3xl border border-slate-200/90 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/90 dark:hover:border-indigo-500/40 sm:p-5"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex flex-wrap gap-2">
@@ -288,7 +288,7 @@ export function DashboardClient({
                   {formatStableDate(row.createdAt)}
                 </time>
               </div>
-              <h2 className="mt-3 text-base font-semibold leading-snug text-slate-900 dark:text-white">
+              <h2 className="mt-3 text-sm font-semibold leading-snug text-slate-900 dark:text-white sm:text-base lg:text-lg">
                 {row.title}
               </h2>
               {row.refNo ? (
@@ -296,7 +296,7 @@ export function DashboardClient({
                   {row.refNo}
                 </p>
               ) : null}
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 sm:text-sm md:text-base">
                 <span className="text-slate-400 dark:text-slate-500">Candidate:</span>{" "}
                 {row.name?.trim() || "—"}
               </p>
@@ -409,13 +409,13 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <div className="h-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className={`h-1 bg-linear-to-r ${accent}`} aria-hidden />
       <div className="px-5 py-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 sm:text-xs">
           {label}
         </p>
-        <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-white">
+        <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-white sm:text-3xl">
           {value}
         </p>
       </div>

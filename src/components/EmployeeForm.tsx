@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { employeeSchema, type EmployeeFormValues } from "@/lib/employeeSchema";
-import { ACCESS_ROLES, type Employee } from "@/types/employee";
+import { ACCESS_ROLES, WORKING_TYPES, type Employee } from "@/types/employee";
 
 type Props = {
   mode: "create" | "edit";
@@ -38,7 +38,7 @@ const DEVELOPER_ROLES = [
 ];
 
 const fieldClass =
-  "mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 dark:border-slate-600 dark:bg-slate-800";
+  "mt-1 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 dark:border-slate-600 dark:bg-slate-800";
 
 const fileInputClass =
   "mt-1 w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-500 outline-none file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-50 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-cyan-700 hover:file:bg-cyan-100 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:file:bg-slate-700 dark:file:text-cyan-300";
@@ -60,6 +60,7 @@ function buildDefaults(initial?: Employee): EmployeeFormValues {
       designation: "",
       role: "Employee",
       accessRole: "Employee",
+      workingType: "Full Time",
       currentAddress: "",
       permanentAddress: "",
       workingLocation: "",
@@ -82,6 +83,7 @@ function buildDefaults(initial?: Employee): EmployeeFormValues {
     designation: initial.designation,
     role: initial.role,
     accessRole: initial.accessRole,
+    workingType: initial.workingType,
     currentAddress: initial.address.currentAddress,
     permanentAddress: initial.address.permanentAddress,
     workingLocation: initial.address.workingLocation,
@@ -200,14 +202,14 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
           <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
             Designation
           </p>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {/* Dropdown 1 — Department */}
-            <div>
+            <div className="min-w-0">
               <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                 Department
               </label>
               <select
-                className={fieldClass}
+                className={`${fieldClass} truncate pr-8`}
                 value={deptCategory}
                 onChange={(e) => handleCategoryChange(e.target.value)}
               >
@@ -220,12 +222,12 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
 
             {/* Dropdown 2 — Role (Management or Development) */}
             {(deptCategory === "Management" || deptCategory === "Development") && (
-              <div>
+              <div className="min-w-0">
                 <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                   {deptCategory === "Management" ? "Management Role" : "Developer Role"}
                 </label>
                 <select
-                  className={fieldClass}
+                  className={`${fieldClass} truncate pr-8`}
                   value={deptRole}
                   onChange={(e) => handleRoleChange(e.target.value)}
                 >
@@ -246,7 +248,7 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
 
             {/* Free-text input for Other / no category */}
             {(deptCategory === "Other" || deptCategory === "") && (
-              <div>
+              <div className="min-w-0">
                 <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                   Designation Title
                 </label>
@@ -267,10 +269,19 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
 
         <input type="hidden" {...register("role")} />
         <Field label="Access Role" error={errors.accessRole?.message}>
-          <select className={fieldClass} {...register("accessRole")}>
+          <select className={`${fieldClass} truncate pr-8`} {...register("accessRole")}>
             {ACCESS_ROLES.map((role) => (
               <option key={role} value={role}>
                 {role}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Working Type" error={errors.workingType?.message}>
+          <select className={`${fieldClass} truncate pr-8`} {...register("workingType")}>
+            {WORKING_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
               </option>
             ))}
           </select>

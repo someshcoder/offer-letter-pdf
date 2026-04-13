@@ -18,10 +18,10 @@ export default function PdfPreview({ fileUrl }: PdfPreviewProps) {
   }, [fileUrl]);
 
   return (
-    <div className="flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-200/80 bg-slate-100/80 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-950/60 sm:min-h-[480px]">
+    <div className="flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-200/80 bg-slate-100/80 p-3 shadow-inner dark:border-slate-800 dark:bg-slate-950/60 sm:min-h-[480px] sm:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 sm:text-sm">
             PDF preview
           </h2>
           <p className="text-[11px] text-slate-500 dark:text-slate-500">
@@ -38,7 +38,7 @@ export default function PdfPreview({ fileUrl }: PdfPreviewProps) {
         </a>
       </div>
 
-      <div className="relative min-h-[min(72vh,52rem)] w-full flex-1 overflow-hidden rounded-xl bg-slate-300/30 dark:bg-slate-800/60">
+      <div className="relative min-h-[52vh] w-full flex-1 overflow-hidden rounded-xl bg-slate-300/30 dark:bg-slate-800/60 sm:min-h-[60vh] lg:min-h-[72vh]">
         <iframe
           key={src}
           title="PDF preview"

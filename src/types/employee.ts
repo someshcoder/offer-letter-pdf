@@ -8,6 +8,16 @@ export const EMPLOYEE_FORM_ROLES = [
 
 export const ACCESS_ROLES = ["Admin", "Employee", "TL", "HR"] as const;
 
+export const WORKING_TYPES = [
+  "Full Time",
+  "Part Time",
+  "Contract",
+  "Freelance",
+  "Intern",
+] as const;
+
+export type WorkingType = (typeof WORKING_TYPES)[number];
+
 export type EmployeeFormRole = (typeof EMPLOYEE_FORM_ROLES)[number];
 export type AccessRole = (typeof ACCESS_ROLES)[number];
 
@@ -55,6 +65,7 @@ export type Employee = {
   designation: string;
   role: EmployeeFormRole;
   accessRole: AccessRole;
+  workingType: WorkingType;
   address: EmployeeAddress;
   accountDetails: EmployeeAccountDetails;
   documents: EmployeeDocuments;

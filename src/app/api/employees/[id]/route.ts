@@ -56,6 +56,7 @@ export async function PUT(
     existing.designation = values.designation;
     existing.role = values.role;
     existing.accessRole = values.accessRole;
+    existing.workingType = values.workingType;
     existing.address = {
       currentAddress: values.currentAddress,
       permanentAddress: values.permanentAddress,

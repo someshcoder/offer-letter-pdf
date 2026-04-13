@@ -15,6 +15,7 @@ export function readEmployeeValuesFromFormData(formData: FormData): EmployeeForm
     designation: readString(formData, "designation"),
     role: (readString(formData, "role") || "Employee") as EmployeeFormValues["role"],
     accessRole: readString(formData, "accessRole") as EmployeeFormValues["accessRole"],
+    workingType: (readString(formData, "workingType") || "Full Time") as EmployeeFormValues["workingType"],
     currentAddress: readString(formData, "currentAddress"),
     permanentAddress: readString(formData, "permanentAddress"),
     workingLocation: readString(formData, "workingLocation"),

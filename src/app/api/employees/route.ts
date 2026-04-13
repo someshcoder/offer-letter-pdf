@@ -52,6 +52,7 @@ export async function POST(req: Request) {
       designation: values.designation,
       role: values.role,
       accessRole: values.accessRole,
+      workingType: values.workingType,
       address: {
         currentAddress: values.currentAddress,
         permanentAddress: values.permanentAddress,

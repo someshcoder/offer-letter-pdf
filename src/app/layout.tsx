@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,10 +38,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased ${theme === "dark" ? "dark" : ""}`}
     >
       <body className="min-h-full bg-transparent">
-        <div className="flex min-h-screen">
-          <AppSidebar initialTheme={theme} />
-          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
-        </div>
+        <AppShell initialTheme={theme}>{children}</AppShell>
       </body>
     </html>
   );

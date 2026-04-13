@@ -36,7 +36,7 @@ const FIELD_CONFIG: { key: keyof FormFields; label: string; placeholder: string 
 ];
 
 const fieldClass =
-  "box-border w-full min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm leading-normal text-slate-950 caret-indigo-600 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/20";
+  "box-border w-full min-w-0 min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs leading-normal text-slate-950 caret-indigo-600 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/20 sm:text-sm";
 
 const KIND_OPTIONS = Object.keys(DOCUMENT_KIND_LABELS) as DocumentKind[];
 
@@ -81,7 +81,7 @@ export function FormPanel({
           <select
             value={selectedEmployeeId}
             onChange={(e) => onSelectEmployee(e.target.value)}
-            className={fieldClass}
+            className={`${fieldClass} truncate pr-8`}
           >
             <option value="">Manual entry</option>
             {employees.map((emp) => (
@@ -99,7 +99,7 @@ export function FormPanel({
           <select
             value={documentKind}
             onChange={(e) => onDocumentKindChange(e.target.value as DocumentKind)}
-            className={fieldClass}
+            className={`${fieldClass} truncate pr-8`}
           >
             {KIND_OPTIONS.map((k) => (
               <option key={k} value={k}>
@@ -112,39 +112,44 @@ export function FormPanel({
           </p>
         </label>
 
-        {FIELD_CONFIG.map(({ key, label, placeholder }) => {
-          const multiline = key === "address";
-          return (
-            <label key={key} className="block shrink-0 text-sm">
-              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
-                {label}
-              </span>
-              {multiline ? (
-                <div className="space-y-1">
-                  <textarea
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {FIELD_CONFIG.map(({ key, label, placeholder }) => {
+            const multiline = key === "address";
+            return (
+              <label
+                key={key}
+                className={`block shrink-0 text-sm ${multiline ? "md:col-span-2" : ""}`}
+              >
+                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  {label}
+                </span>
+                {multiline ? (
+                  <div className="space-y-1">
+                    <textarea
+                      value={form[key]}
+                      onChange={(e) => onChange(key, e.target.value)}
+                      placeholder={placeholder}
+                      rows={4}
+                      className={`${fieldClass} resize-y`}
+                    />
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Long addresses wrap (max 2 lines) so &quot;Congratulations!&quot; stays visible.
+                    </p>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
                     value={form[key]}
                     onChange={(e) => onChange(key, e.target.value)}
                     placeholder={placeholder}
-                    rows={4}
-                    className={`${fieldClass} resize-y`}
+                    autoComplete="off"
+                    className={fieldClass}
                   />
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Long addresses wrap (max 2 lines) so &quot;Congratulations!&quot; stays visible.
-                  </p>
-                </div>
-              ) : (
-                <input
-                  type="text"
-                  value={form[key]}
-                  onChange={(e) => onChange(key, e.target.value)}
-                  placeholder={placeholder}
-                  autoComplete="off"
-                  className={fieldClass}
-                />
-              )}
-            </label>
-          );
-        })}
+                )}
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       <label className="flex shrink-0 cursor-pointer items-center gap-3 text-sm font-medium text-slate-800 dark:text-slate-200">
