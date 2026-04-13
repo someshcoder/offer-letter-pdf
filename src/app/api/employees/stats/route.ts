@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import connectDB, { getMongoIssue } from "@/lib/mongodb";
-import { requireAuth } from "@/lib/apiAuth";
 import Employee from "@/models/Employee";
 import { mapEmployee } from "@/lib/employeeMapper";
 
 export async function GET() {
-  const auth = await requireAuth(["Admin", "HR", "TL"]);
-  if ("error" in auth) return auth.error;
-
   const emptyStats = {
     total: 0,
     roleWise: {

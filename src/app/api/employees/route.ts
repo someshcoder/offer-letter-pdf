@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import connectDB, { getMongoIssue } from "@/lib/mongodb";
-import { requireAuth } from "@/lib/apiAuth";
 import { employeeSchema } from "@/lib/employeeSchema";
 import { readEmployeeValuesFromFormData } from "@/lib/employeePayload";
 import { saveUploadedFile } from "@/utils/upload";
@@ -8,9 +7,6 @@ import { mapEmployee } from "@/lib/employeeMapper";
 import Employee from "@/models/Employee";
 
 export async function GET() {
-  const auth = await requireAuth(["Admin", "HR", "TL"]);
-  if ("error" in auth) return auth.error;
-
   if (!process.env.MONGODB_URI) {
     return NextResponse.json({
       items: [],
@@ -34,9 +30,6 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAuth(["Admin", "HR"]);
-  if ("error" in auth) return auth.error;
-
   try {
     await connectDB();
 

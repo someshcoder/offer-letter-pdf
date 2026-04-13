@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import connectDB, { getMongoIssue } from "@/lib/mongodb";
-import { requireAuth } from "@/lib/apiAuth";
 import { employeeSchema } from "@/lib/employeeSchema";
 import { readEmployeeValuesFromFormData } from "@/lib/employeePayload";
 import { saveUploadedFile } from "@/utils/upload";
@@ -11,9 +10,6 @@ export async function GET(
   _req: Request,
   ctx: RouteContext<"/api/employees/[id]">,
 ) {
-  const auth = await requireAuth(["Admin", "HR", "TL", "Employee"]);
-  if ("error" in auth) return auth.error;
-
   try {
     await connectDB();
     const { id } = await ctx.params;
@@ -34,9 +30,6 @@ export async function PUT(
   req: Request,
   ctx: RouteContext<"/api/employees/[id]">,
 ) {
-  const auth = await requireAuth(["Admin", "HR"]);
-  if ("error" in auth) return auth.error;
-
   try {
     await connectDB();
     const { id } = await ctx.params;
@@ -153,9 +146,6 @@ export async function DELETE(
   _req: Request,
   ctx: RouteContext<"/api/employees/[id]">,
 ) {
-  const auth = await requireAuth(["Admin"]);
-  if ("error" in auth) return auth.error;
-
   try {
     await connectDB();
     const { id } = await ctx.params;
