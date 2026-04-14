@@ -33,6 +33,11 @@ type MongoEmployee = {
     passportPhoto?: Employee["documents"]["passportPhoto"];
     passbookFile?: Employee["documents"]["passbookFile"];
   };
+  reportingTL?: {
+    id: unknown;
+    employeeName: string;
+    email: string;
+  };
   createdAt: Date | string;
   updatedAt: Date | string;
 };
@@ -71,6 +76,13 @@ export function mapEmployee(doc: MongoEmployee): Employee {
       passportPhoto: doc.documents.passportPhoto,
       passbookFile: doc.documents.passbookFile,
     },
+    reportingTL: doc.reportingTL
+      ? {
+          id: String(doc.reportingTL.id),
+          employeeName: doc.reportingTL.employeeName,
+          email: doc.reportingTL.email,
+        }
+      : undefined,
     createdAt:
       doc.createdAt instanceof Date
         ? doc.createdAt.toISOString()

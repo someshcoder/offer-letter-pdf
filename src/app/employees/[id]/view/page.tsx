@@ -142,6 +142,15 @@ export default function EmployeeViewPage() {
           </DetailGrid>
         </DetailSection>
 
+        {employee.reportingTL ? (
+          <DetailSection title="👥 Reporting">
+            <DetailGrid>
+              <DetailField label="Team Leader" value={employee.reportingTL.employeeName} />
+              <DetailField label="TL Email" value={employee.reportingTL.email} />
+            </DetailGrid>
+          </DetailSection>
+        ) : null}
+
         {/* Address Information */}
         <DetailSection title="📍 Address">
           <DetailGrid>

@@ -23,6 +23,7 @@ export function AppSidebar({ initialTheme, mobileOpen, onCloseMobile }: Props) {
   const onDashboard = pathname === "/dashboard";
   const onEmployees = pathname.startsWith("/employees");
   const onClients = pathname.startsWith("/clients");
+  const onTls = pathname.startsWith("/tls");
 
   return (
     <>
@@ -124,6 +125,21 @@ export function AppSidebar({ initialTheme, mobileOpen, onCloseMobile }: Props) {
             </svg>
           </span>
           Offer letter
+        </Link>
+        <Link
+          href="/tls"
+          onClick={onCloseMobile}
+          className={`${itemBase} ${onTls ? active : inactive}`}
+        >
+          <span
+            className="flex size-8 items-center justify-center rounded-lg bg-violet-500/15 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
+            aria-hidden
+          >
+            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-3-3v6m-4 5h10M4 6h16" />
+            </svg>
+          </span>
+          TL Management
         </Link>
       </nav>
 

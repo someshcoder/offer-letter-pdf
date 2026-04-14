@@ -56,6 +56,12 @@ export type EmployeeDocuments = {
   passbookFile?: UploadedFileMeta;
 };
 
+export type EmployeeReportingTL = {
+  id: string;
+  employeeName: string;
+  email: string;
+};
+
 export type Employee = {
   _id: string;
   employeeName: string;
@@ -69,6 +75,7 @@ export type Employee = {
   address: EmployeeAddress;
   accountDetails: EmployeeAccountDetails;
   documents: EmployeeDocuments;
+  reportingTL?: EmployeeReportingTL;
   createdAt: string;
   updatedAt: string;
 };

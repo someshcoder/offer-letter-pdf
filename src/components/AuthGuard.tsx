@@ -13,9 +13,9 @@ type MeResponse = {
 };
 
 const roleRouteMap: Record<AccessRole, string[]> = {
-  Admin: ["/dashboard", "/employees", "/offer-letter"],
-  HR: ["/dashboard", "/employees", "/offer-letter"],
-  TL: ["/dashboard", "/employees", "/offer-letter"],
+  Admin: ["/dashboard", "/employees", "/offer-letter", "/tls"],
+  HR: ["/dashboard", "/employees", "/offer-letter", "/tls"],
+  TL: ["/dashboard", "/employees", "/offer-letter", "/tls"],
   Employee: ["/offer-letter"],
 };
 

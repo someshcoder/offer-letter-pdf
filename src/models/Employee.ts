@@ -51,6 +51,11 @@ const EmployeeSchema = new Schema(
       upiId: { type: String, default: "", trim: true },
       upiHolderName: { type: String, default: "", trim: true },
     },
+    reportingTL: {
+      id: { type: String, required: false },
+      employeeName: { type: String, required: false, trim: true },
+      email: { type: String, required: false, trim: true, lowercase: true },
+    },
     documents: {
       aadharNumber: { type: String, required: true, trim: true },
       aadharFile: { type: UploadedFileSchema, required: false },
