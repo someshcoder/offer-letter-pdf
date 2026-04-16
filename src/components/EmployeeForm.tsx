@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { employeeSchema, type EmployeeFormValues } from "@/lib/employeeSchema";
@@ -129,11 +129,14 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: defaults,
   });
+
+  const reportingTLId = watch("reportingTLId");
 
   function handleCategoryChange(cat: string) {
     setDeptCategory(cat);
@@ -319,7 +322,7 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
         <Field label="Assign Team Leader">
           <select
             className={`${fieldClass} truncate pr-8`}
-            value={register("reportingTLId").value || ""}
+            value={reportingTLId || ""}
             onChange={handleTLChange}
           >
             <option value="">— Unassigned —</option>
