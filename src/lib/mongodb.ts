@@ -89,6 +89,7 @@ export default async function connectDB(): Promise<typeof mongoose> {
   if (!cache.promise) {
     cache.promise = mongoose.connect(validateMongoUri(MONGODB_URI), {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5000,
     });
   }
   cache.conn = await cache.promise;

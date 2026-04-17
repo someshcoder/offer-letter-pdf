@@ -220,10 +220,26 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
           <input className={fieldClass} {...register("employeeName")} />
         </Field>
         <Field label="Mobile Number" error={errors.mobileNumber?.message}>
-          <input className={fieldClass} {...register("mobileNumber")} />
+          <input
+            className={fieldClass}
+            {...register("mobileNumber")}
+            maxLength={10}
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              target.value = target.value.replace(/[^0-9]/g, "");
+            }}
+          />
         </Field>
         <Field label="Alternate Number" error={errors.alternateNumber?.message}>
-          <input className={fieldClass} {...register("alternateNumber")} />
+          <input
+            className={fieldClass}
+            {...register("alternateNumber")}
+            maxLength={10}
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              target.value = target.value.replace(/[^0-9]/g, "");
+            }}
+          />
         </Field>
         <Field label="Email ID" error={errors.email?.message}>
           <input className={fieldClass} type="email" {...register("email")} />
@@ -368,7 +384,15 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
           <input className={fieldClass} {...register("accountNumber")} />
         </Field>
         <Field label="IFSC Code" error={errors.ifscCode?.message}>
-          <input className={fieldClass} {...register("ifscCode")} />
+          <input
+            className={fieldClass}
+            {...register("ifscCode")}
+            maxLength={11}
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              target.value = target.value.toUpperCase();
+            }}
+          />
         </Field>
         <Field label="Bank Name" error={errors.bankName?.message}>
           <input className={fieldClass} {...register("bankName")} />
@@ -404,7 +428,15 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
         </h2>
 
         <Field label="Aadhar Number" error={errors.aadharNumber?.message}>
-          <input className={fieldClass} {...register("aadharNumber")} />
+          <input
+            className={fieldClass}
+            {...register("aadharNumber")}
+            maxLength={12}
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              target.value = target.value.replace(/[^0-9]/g, "");
+            }}
+          />
         </Field>
         <Field label="Aadhar Card Upload">
           <input
@@ -420,6 +452,11 @@ export function EmployeeForm({ mode, initial, loading, onSubmit }: Props) {
             className={fieldClass}
             placeholder="e.g. ABCDE1234F"
             {...register("panNumber")}
+            maxLength={10}
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              target.value = target.value.toUpperCase();
+            }}
           />
         </Field>
         <Field label="PAN Card Upload">
