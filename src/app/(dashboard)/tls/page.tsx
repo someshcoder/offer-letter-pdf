@@ -9,6 +9,7 @@ type Manager = {
   name: string;
   role: string;
   email: string;
+  mobileNumber?: string;
 };
 
 type ManagerResponse = { items?: Manager[]; warning?: string; error?: string };
@@ -328,7 +329,22 @@ export default function TeamLeaderManagementPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate text-base font-bold text-slate-900 dark:text-white">{manager.name}</h3>
-                        <p className="truncate text-xs text-slate-500 dark:text-slate-400 font-medium">{manager.email}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                          <p className="truncate text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
+                            <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            {manager.email}
+                          </p>
+                          {manager.mobileNumber && (
+                            <p className="truncate text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
+                              <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
+                              {manager.mobileNumber}
+                            </p>
+                          )}
+                        </div>
                         <div className="mt-2.5 flex items-center gap-2">
                           <span className="inline-flex items-center rounded-lg bg-violet-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-700 ring-1 ring-inset ring-violet-700/10 dark:bg-violet-400/10 dark:text-violet-400 dark:ring-violet-400/20">
                             {manager.role}

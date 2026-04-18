@@ -7,7 +7,7 @@ export async function GET() {
     await connectDB();
 
     const rows = await Employee.find({ accessRole: { $in: ["Admin", "HR", "TL"] } })
-      .select("employeeName accessRole email")
+      .select("employeeName accessRole email mobileNumber")
       .sort({ employeeName: 1 })
       .lean();
 
@@ -17,6 +17,7 @@ export async function GET() {
         name: row.employeeName,
         role: row.accessRole,
         email: row.email,
+        mobileNumber: row.mobileNumber,
       })),
     });
   } catch (error) {
