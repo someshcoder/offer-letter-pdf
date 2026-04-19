@@ -10,8 +10,11 @@ interface Props {
 
 export const SalaryForm: React.FC<Props> = ({ data, onChange }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    onChange({ ...data, [name]: parseFloat(value) || 0 });
+    const { name, value, type } = e.target;
+    onChange({
+      ...data,
+      [name]: type === "number" ? parseFloat(value) || 0 : value,
+    });
   };
 
   const setTotalDays = (days: number) => {
@@ -39,6 +42,32 @@ export const SalaryForm: React.FC<Props> = ({ data, onChange }) => {
               {d} Days
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="border-b border-slate-100 dark:border-slate-800 pb-6">
+        <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">Employment Period</h3>
+        <div className="grid gap-6 md:grid-cols-2">
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Joining Date</span>
+            <input
+              type="date"
+              name="joiningDate"
+              value={data.joiningDate || ""}
+              onChange={handleChange}
+              className={inputClass}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Leaving Date (Optional)</span>
+            <input
+              type="date"
+              name="leavingDate"
+              value={data.leavingDate || ""}
+              onChange={handleChange}
+              className={inputClass}
+            />
+          </label>
         </div>
       </div>
 

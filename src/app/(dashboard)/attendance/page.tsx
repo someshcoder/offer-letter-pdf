@@ -15,6 +15,8 @@ export default function AttendancePayrollPage() {
     overtime: 0,
     taxPercentage: 0,
     otherDeductions: 0,
+    joiningDate: "",
+    leavingDate: "",
   });
 
   const breakdown = useMemo(() => calculateSalary(formData), [formData]);
@@ -44,7 +46,11 @@ export default function AttendancePayrollPage() {
 
         <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
           <SalaryForm data={formData} onChange={setFormData} />
-          <SalarySummary breakdown={breakdown} />
+          <SalarySummary
+            breakdown={breakdown}
+            joiningDate={formData.joiningDate}
+            leavingDate={formData.leavingDate}
+          />
         </div>
       </div>
     </div>

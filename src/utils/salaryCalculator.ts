@@ -7,6 +7,8 @@ export interface SalaryStructure {
   overtime: number;
   taxPercentage: number;
   otherDeductions: number;
+  joiningDate?: string;
+  leavingDate?: string;
 }
 
 export interface SalaryBreakdown {

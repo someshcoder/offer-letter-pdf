@@ -6,9 +6,16 @@ import { SalaryBreakdown } from "@/utils/salaryCalculator";
 interface Props {
   breakdown: SalaryBreakdown;
   employeeName?: string;
+  joiningDate?: string;
+  leavingDate?: string;
 }
 
-export const SalarySummary: React.FC<Props> = ({ breakdown, employeeName = "John Doe" }) => {
+export const SalarySummary: React.FC<Props> = ({
+  breakdown,
+  employeeName = "John Doe",
+  joiningDate,
+  leavingDate,
+}) => {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(val);
 
@@ -39,6 +46,18 @@ export const SalarySummary: React.FC<Props> = ({ breakdown, employeeName = "John
       <div className="rounded-[2.5rem] border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900/40">
         <h3 className="mb-6 text-lg font-bold text-slate-800 dark:text-white">Detailed Breakdown</h3>
         <div className="space-y-4">
+          {joiningDate && (
+             <div className="flex justify-between items-center text-sm">
+               <span className="text-slate-500 dark:text-slate-400">Joining Date</span>
+               <span className="font-semibold text-slate-900 dark:text-white">{joiningDate}</span>
+             </div>
+          )}
+          {leavingDate && (
+             <div className="flex justify-between items-center text-sm">
+               <span className="text-slate-500 dark:text-slate-400">Leaving Date</span>
+               <span className="font-semibold text-slate-900 dark:text-white">{leavingDate}</span>
+             </div>
+          )}
           <div className="flex justify-between items-center text-sm">
             <span className="text-slate-500 dark:text-slate-400">Gross Salary (Earned)</span>
             <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(breakdown.grossEarned)}</span>
@@ -99,6 +118,8 @@ export const SalarySummary: React.FC<Props> = ({ breakdown, employeeName = "John
               <p className="text-[10px] uppercase font-bold text-slate-400">Employee Details</p>
               <p className="font-bold text-lg">{employeeName}</p>
               <p className="text-sm text-slate-600">Performance Period: {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
+              {joiningDate && <p className="text-xs text-slate-500">Joined: {joiningDate}</p>}
+              {leavingDate && <p className="text-xs text-slate-500">Left: {leavingDate}</p>}
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase font-bold text-slate-400">Total Net Payable</p>
