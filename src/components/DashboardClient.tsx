@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   isLocalDashboardItem,
@@ -31,6 +31,7 @@ type Props = {
     role: string;
     designation: string;
   }>;
+  analyticsSection?: ReactNode;
 };
 
 type Filter = "all" | DocumentKind;
@@ -79,6 +80,7 @@ export function DashboardClient({
   employeeTotal,
   roleCounts,
   recentEmployees,
+  analyticsSection,
 }: Props) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("all");
@@ -114,39 +116,130 @@ export function DashboardClient({
   );
 
   const stats = useMemo(() => {
+    let offer = 0;
+    let internship = 0;
+    let other = 0;
+    for (const item of items) {
+      if (item.documentKind === "offer") offer += 1;
+      else if (item.documentKind === "internship") internship += 1;
+      else if (item.documentKind === "other") other += 1;
+    }
     const total = items.length;
-    const offer = items.filter((i) => i.documentKind === "offer").length;
-    const internship = items.filter(
-      (i) => i.documentKind === "internship",
-    ).length;
-    const other = items.filter((i) => i.documentKind === "other").length;
     return { total, offer, internship, other };
   }, [items]);
+
+  const openSendModal = useCallback((id: string) => {
+    setActiveMailId(id);
+    setRecipientEmail("");
+    setMailMsg(null);
+  }, []);
 
   const filtered = useMemo(() => {
     if (filter === "all") return items;
     return items.filter((i) => i.documentKind === filter);
   }, [items, filter]);
 
-  if (items.length === 0) {
-    return (
-      <div className="space-y-4">
-        {serverError ? (
-          <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-            {serverError} Local browser saves will still appear here on this device.
-          </div>
-        ) : null}
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-white/80 p-12 text-center shadow-sm dark:border-slate-600 dark:bg-slate-900/50">
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            No saved letters yet
-          </p>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            Save a letter from the editor and it will appear here instantly.
-          </p>
-        </div>
+  const lettersSection =
+    items.length === 0 ? (
+      <div className="rounded-3xl border border-dashed border-slate-300 bg-white/80 p-10 text-center shadow-sm dark:border-slate-600 dark:bg-slate-900/50">
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">No saved letters yet</p>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          Save a letter from the editor and it will appear here instantly.
+        </p>
       </div>
+    ) : (
+      <>
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+          <span className="mr-2 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Filter
+          </span>
+          {FILTERS.map((f) => {
+            const active = filter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFilter(f.id)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4 sm:text-sm ${
+                  active
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-700/80"
+                }`}
+              >
+                {f.label}
+                {f.id !== "all" && (
+                  <span className="ml-1.5 tabular-nums opacity-70">
+                    ·{" "}
+                    {f.id === "offer" ? stats.offer : f.id === "internship" ? stats.internship : stats.other}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {filtered.length === 0 ? (
+          <p className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+            No documents in this category. Switch filter or save a new letter with this type from the editor.
+          </p>
+        ) : (
+          <ul className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
+            {filtered.map((row) => (
+              <li
+                key={row.id}
+                className="group flex h-full flex-col rounded-3xl border border-slate-200/90 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/90 dark:hover:border-indigo-500/40 sm:p-5"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${KIND_BADGE[row.documentKind]}`}
+                    >
+                      {DOCUMENT_KIND_LABELS[row.documentKind]}
+                    </span>
+                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-inset ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">
+                      {row.storage === "local" ? "Local" : "Database"}
+                    </span>
+                  </div>
+                  <time
+                    className="text-xs tabular-nums text-slate-500 dark:text-slate-400"
+                    dateTime={row.createdAt}
+                  >
+                    {formatStableDate(row.createdAt)}
+                  </time>
+                </div>
+                <h2 className="mt-3 text-sm font-semibold leading-snug text-slate-900 dark:text-white sm:text-base lg:text-lg">
+                  {row.title}
+                </h2>
+                {row.refNo ? (
+                  <p className="mt-0.5 font-mono text-xs text-slate-500 dark:text-slate-400">{row.refNo}</p>
+                ) : null}
+                <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 sm:text-sm md:text-base">
+                  <span className="text-slate-400 dark:text-slate-500">Candidate:</span> {row.name?.trim() || "—"}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3 text-xs dark:border-slate-800">
+                  {row.mailSentAt ? (
+                    <span className="rounded-md bg-emerald-500/10 px-2 py-1 font-medium text-emerald-800 dark:text-emerald-300">
+                      Emailed {formatStableDate(row.mailSentAt)}
+                    </span>
+                  ) : null}
+                  {row.lastMailTo ? (
+                    <span className="text-slate-500 dark:text-slate-400">→ {row.lastMailTo}</span>
+                  ) : null}
+                </div>
+                {row.mailError &&
+                !row.mailError.includes("Resend send failed") &&
+                !row.mailError.includes("Email not configured. Use a real mail server") ? (
+                  <p className="mt-2 rounded-lg bg-red-500/10 px-2 py-1.5 text-xs text-red-700 dark:text-red-300">
+                    {row.mailError}
+                  </p>
+                ) : null}
+                <CardActions item={row} onSendEmail={() => openSendModal(row.id)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </>
     );
-  }
 
   return (
     <div className="flex flex-col gap-6 sm:gap-7 lg:gap-8">
@@ -199,6 +292,8 @@ export function DashboardClient({
         />
       </section>
 
+      {analyticsSection}
+
       <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
           Recent employees
@@ -225,112 +320,8 @@ export function DashboardClient({
         )}
       </section>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
-        <span className="mr-2 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Filter
-        </span>
-        {FILTERS.map((f) => {
-          const active = filter === f.id;
-          return (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFilter(f.id)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4 sm:text-sm ${
-                active
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-700/80"
-              }`}
-            >
-              {f.label}
-              {f.id !== "all" && (
-                <span className="ml-1.5 tabular-nums opacity-70">
-                  ·{" "}
-                  {f.id === "offer"
-                    ? stats.offer
-                    : f.id === "internship"
-                      ? stats.internship
-                      : stats.other}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {lettersSection}
 
-      {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-          No documents in this category. Switch filter or save a new letter with this
-          type from the editor.
-        </p>
-      ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
-          {filtered.map((row) => (
-            <li
-              key={row.id}
-              className="group flex h-full flex-col rounded-3xl border border-slate-200/90 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/90 dark:hover:border-indigo-500/40 sm:p-5"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex flex-wrap gap-2">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${KIND_BADGE[row.documentKind]}`}
-                  >
-                    {DOCUMENT_KIND_LABELS[row.documentKind]}
-                  </span>
-                  <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 ring-1 ring-inset ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">
-                    {row.storage === "local" ? "Local" : "Database"}
-                  </span>
-                </div>
-                <time
-                  className="text-xs tabular-nums text-slate-500 dark:text-slate-400"
-                  dateTime={row.createdAt}
-                >
-                  {formatStableDate(row.createdAt)}
-                </time>
-              </div>
-              <h2 className="mt-3 text-sm font-semibold leading-snug text-slate-900 dark:text-white sm:text-base lg:text-lg">
-                {row.title}
-              </h2>
-              {row.refNo ? (
-                <p className="mt-0.5 font-mono text-xs text-slate-500 dark:text-slate-400">
-                  {row.refNo}
-                </p>
-              ) : null}
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 sm:text-sm md:text-base">
-                <span className="text-slate-400 dark:text-slate-500">Candidate:</span>{" "}
-                {row.name?.trim() || "—"}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3 text-xs dark:border-slate-800">
-                {row.mailSentAt ? (
-                  <span className="rounded-md bg-emerald-500/10 px-2 py-1 font-medium text-emerald-800 dark:text-emerald-300">
-                    Emailed {formatStableDate(row.mailSentAt)}
-                  </span>
-                ) : null}
-                {row.lastMailTo ? (
-                  <span className="text-slate-500 dark:text-slate-400">
-                    → {row.lastMailTo}
-                  </span>
-                ) : null}
-              </div>
-              {row.mailError &&
-              !row.mailError.includes("Resend send failed") &&
-              !row.mailError.includes("Email not configured. Use a real mail server") ? (
-                <p className="mt-2 rounded-lg bg-red-500/10 px-2 py-1.5 text-xs text-red-700 dark:text-red-300">
-                  {row.mailError}
-                </p>
-              ) : null}
-              <CardActions
-                item={row}
-                onSendEmail={() => {
-                  setActiveMailId(row.id);
-                  setRecipientEmail("");
-                  setMailMsg(null);
-                }}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
       <SendEmailModal
         isOpen={Boolean(activeMailId)}
         userEmail={recipientEmail}

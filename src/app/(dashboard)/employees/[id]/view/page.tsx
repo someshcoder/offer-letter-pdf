@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Employee } from "@/types/employee";
+import { PageSkeleton } from "@/components/SkeletonLoader";
 
 type EmployeeResponse = { item?: Employee; error?: string };
 
@@ -41,13 +42,7 @@ export default function EmployeeViewPage() {
   }, [employeeId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen p-3 flex items-center justify-center sm:p-4">
-        <div className="text-center">
-          <p className="text-sm text-slate-600 dark:text-slate-300">Loading...</p>
-        </div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (error || !employee) {
@@ -134,11 +129,29 @@ export default function EmployeeViewPage() {
           </DetailGrid>
         </DetailSection>
 
+        {/* Personal Information */}
+        <DetailSection title="👤 Personal Info">
+          <DetailGrid>
+            <DetailField label="Date of Birth" value={employee.dob ? formatJustDate(employee.dob) : "—"} />
+            <DetailField label="Marital Status" value={employee.maritalStatus || "—"} />
+            <DetailField label="Blood Group" value={employee.bloodGroup || "—"} />
+            <DetailField label="Relative Name" value={employee.relativeName || "—"} />
+            <DetailField label="Relation Type" value={employee.relationType || "—"} />
+          </DetailGrid>
+        </DetailSection>
+
         {/* Employment Information */}
         <DetailSection title="💼 Employment">
           <DetailGrid>
             <DetailField label="Designation" value={employee.designation} />
             <DetailField label="Working Type" value={employee.workingType} />
+            <DetailField label="Working Mode" value={employee.workingMode} />
+            {employee.workingMode === "Office" && (
+              <DetailField label="Office Location" value={employee.officeLocation || "—"} />
+            )}
+            <DetailField label="Joining Date" value={employee.joiningDate ? formatJustDate(employee.joiningDate) : "—"} />
+            <DetailField label="Interview Date" value={employee.interviewDate ? formatJustDate(employee.interviewDate) : "—"} />
+            <DetailField label="Offered Salary" value={employee.offeredSalary ? `₹${employee.offeredSalary.toLocaleString()}` : "—"} />
           </DetailGrid>
         </DetailSection>
 
@@ -162,11 +175,6 @@ export default function EmployeeViewPage() {
             <DetailField
               label="Permanent Address"
               value={employee.address.permanentAddress}
-              span="full"
-            />
-            <DetailField
-              label="Working Location"
-              value={employee.address.workingLocation}
               span="full"
             />
           </DetailGrid>
@@ -354,20 +362,39 @@ type DocLinkProps = {
 };
 
 function DocLink({ label, file }: DocLinkProps) {
+  const isImage = /\.(jpe?g|png|gif|webp)$/i.test(file.originalName);
+  const isPdf = /\.pdf$/i.test(file.originalName);
+  
   return (
     <div className="sm:col-span-2">
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1 sm:mb-2">
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
         {label}
       </p>
+
+      {/* Large Visual Preview */}
+      {isImage && (
+        <div className="mb-3 w-full max-w-sm overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+          <a href={file.url} target="_blank" rel="noopener noreferrer">
+            <img src={file.url} alt={label} className="w-full h-auto object-contain max-h-64 hover:opacity-90 transition-opacity" />
+          </a>
+        </div>
+      )}
+      {isPdf && (
+        <div className="mb-3 w-full h-80 max-w-2xl overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+          <iframe src={`${file.url}#toolbar=0`} className="w-full h-full" title={label} />
+        </div>
+      )}
+
+      {/* File Link Button */}
       <a
         href={file.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex w-full items-center gap-2 rounded-lg bg-cyan-50 px-2 py-2 text-xs font-medium text-cyan-700 transition-colors hover:bg-cyan-100 dark:bg-cyan-950/30 dark:text-cyan-300 dark:hover:bg-cyan-950/50 sm:w-auto sm:px-3 sm:text-sm"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-cyan-700 shadow-sm sm:w-auto"
       >
-        <span className="flex-shrink-0">📥</span>
-        <span className="min-w-0 break-all">{file.originalName}</span>
-        <span className="text-xs text-cyan-600 dark:text-cyan-400 flex-shrink-0">
+        <span className="flex-shrink-0">👁️</span>
+        <span className="min-w-0 truncate">View Document ({file.originalName})</span>
+        <span className="ml-1 text-xs text-cyan-200 flex-shrink-0 border-l border-cyan-500 pl-2">
           {formatFileSize(file.size)}
         </span>
       </a>
@@ -385,23 +412,40 @@ function AcademicDocRow({
     uploadedAt: string | Date;
   };
 }) {
+  const isImage = /\.(jpe?g|png|gif|webp)$/i.test(file.originalName);
+  const isPdf = /\.pdf$/i.test(file.originalName);
+
   return (
-    <a
-      href={file.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700/50 transition-colors sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
-          📄 {file.originalName}
-        </p>
-        <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">
-          {formatFileSize(file.size)} • {formatDate(file.uploadedAt)}
-        </p>
+    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4 dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+            <span className="mr-2 text-xl">{isImage ? '📸' : isPdf ? '📄' : '📎'}</span>
+            {file.originalName}
+          </p>
+          <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">
+            {formatFileSize(file.size)} • {formatDate(file.uploadedAt)}
+          </p>
+        </div>
+        <a href={file.url} target="_blank" rel="noopener noreferrer" className="ml-3 shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-cyan-700">
+          <span className="text-sm">👁️</span>
+          View Document
+        </a>
       </div>
-      <span className="flex-shrink-0 text-lg sm:ml-2">⬇️</span>
-    </a>
+
+      {isImage && (
+        <div className="w-full max-w-sm overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+          <a href={file.url} target="_blank" rel="noopener noreferrer">
+            <img src={file.url} alt={file.originalName} className="w-full h-auto object-contain max-h-64 hover:opacity-90 transition-opacity" />
+          </a>
+        </div>
+      )}
+      {isPdf && (
+        <div className="w-full h-64 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+          <iframe src={`${file.url}#toolbar=0`} className="w-full h-full" title={file.originalName} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -414,12 +458,22 @@ function formatFileSize(bytes: number): string {
 }
 
 function formatDate(date: string | Date): string {
+  if (!date) return "—";
   return new Date(date).toLocaleDateString("en-IN", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+  });
+}
+
+function formatJustDate(date: string | Date): string {
+  if (!date) return "—";
+  return new Date(date).toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 

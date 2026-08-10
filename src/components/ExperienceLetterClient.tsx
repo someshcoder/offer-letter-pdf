@@ -3,6 +3,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ExperienceForm } from "@/components/ExperienceForm";
 import { ExperiencePreview } from "@/components/ExperiencePreview";
+import { TableSkeleton } from "@/components/SkeletonLoader";
+import { Breadcrumb } from "@/components/modules/Breadcrumb";
+import { documentBreadcrumbs } from "@/lib/navigation";
 import { ExperienceLetterData } from "@/utils/experienceLetterGenerator";
 import {
   FileBadge,
@@ -237,6 +240,7 @@ export default function ExperienceLetterClient() {
   return (
     <div className="min-h-screen flex-1 px-3 py-4 sm:px-5 sm:py-6 md:px-6 lg:px-7 xl:px-8">
       <div className="mx-auto w-full max-w-7xl space-y-5 sm:space-y-6">
+        <Breadcrumb items={documentBreadcrumbs("experienceLetter")} />
         {/* Header */}
         <header className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/70 sm:p-8">
           <div
@@ -246,10 +250,10 @@ export default function ExperienceLetterClient() {
           <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-300">
-                Document Center
+                Documents
               </p>
               <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                Experience Letters
+                Experience Letter
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
                 Manage and create experience letters for employees.
@@ -268,12 +272,7 @@ export default function ExperienceLetterClient() {
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-7 animate-spin text-cyan-500" />
-              <span className="ml-3 text-sm text-slate-500 dark:text-slate-400">
-                Loading experience letters...
-              </span>
-            </div>
+            <TableSkeleton columns={5} rows={5} />
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="flex size-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500">

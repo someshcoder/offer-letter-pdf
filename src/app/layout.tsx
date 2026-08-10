@@ -16,9 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Employee Management System",
+  title: "ProvisioningTech Control Center",
   description:
     "Employee management and offer letter automation built with Next.js.",
+  icons: {
+    icon: [{ url: "/logo.png", type: "image/png" }],
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default async function RootLayout({
@@ -39,7 +44,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-transparent">
         {children}
-        <Toaster position="top-right" />
+        <Toaster position="top-right" toastOptions={{ duration: 3500 }} gutter={8} />
       </body>
     </html>
   );

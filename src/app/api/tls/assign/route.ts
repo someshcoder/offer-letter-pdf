@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import connectDB, { getMongoIssue } from "@/lib/mongodb";
+import { getAuthFromCookies } from "@/lib/auth";
 import Employee from "@/models/Employee";
 
 export async function POST(req: Request) {
   try {
+    const auth = await getAuthFromCookies();
+    if (!auth || (auth.role !== "Admin" && auth.role !== "HR")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await connectDB();
     const body = await req.json();
     const tlId = String(body.tlId || "").trim();

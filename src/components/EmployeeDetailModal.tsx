@@ -145,7 +145,7 @@ export default function EmployeeDetailModal({ employee, onClose }: Props) {
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Permanent Address</p>
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{employee.address.permanentAddress}</p>
                   </div>
-                  <Item icon={MapPin} label="Working Location" value={employee.address.workingLocation} />
+
                 </div>
               </Section>
             </div>

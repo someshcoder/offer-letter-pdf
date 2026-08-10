@@ -1,20 +1,19 @@
 import { cookies } from "next/headers";
-import { AppShell } from "@/components/AppShell";
-import { getAuthFromCookies } from "@/lib/auth";
+import { DashboardShell } from "@/components/DashboardShell";
+import { getCompanySettings } from "@/lib/companySettings";
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
+  const [cookieStore, branding] = await Promise.all([cookies(), getCompanySettings()]);
   const themeCookie = cookieStore.get("ems-theme")?.value;
-  const theme = themeCookie === "dark" || themeCookie === "light" ? themeCookie : "light";
-  const auth = await getAuthFromCookies();
+  const initialTheme = themeCookie === "dark" || themeCookie === "light" ? themeCookie : "light";
 
   return (
-    <AppShell initialTheme={theme} userRole={auth?.role}>
+    <DashboardShell initialTheme={initialTheme} initialBranding={branding}>
       {children}
-    </AppShell>
+    </DashboardShell>
   );
 }

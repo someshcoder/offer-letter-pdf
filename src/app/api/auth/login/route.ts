@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import connectDB, { getMongoIssue } from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import LoginSession from "@/models/LoginSession";
 import { getAuthCookieName, signAuthToken } from "@/lib/auth";
 import { ensureAdminUser } from "@/lib/ensureAdminUser";
+import { handleApiError } from "@/lib/apiResponse";
 
 export async function POST(req: Request) {
   try {
@@ -21,7 +23,9 @@ export async function POST(req: Request) {
     await connectDB();
     await ensureAdminUser();
 
-    const user = await User.findOne({ email }).lean();
+    const user = await User.findOne({ email })
+      .select("_id email role name passwordHash")
+      .lean();
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
@@ -31,10 +35,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
+    const session = await LoginSession.create({
+      userId: String(user._id),
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      ipAddress: req.headers.get("x-forwarded-for") || "",
+      userAgent: req.headers.get("user-agent") || "",
+    });
+
     const token = signAuthToken({
       userId: String(user._id),
       email: user.email,
       role: user.role,
+      name: user.name,
+      sessionId: String(session._id),
     });
 
     const res = NextResponse.json({
@@ -54,7 +69,6 @@ export async function POST(req: Request) {
 
     return res;
   } catch (error) {
-    const issue = getMongoIssue(error);
-    return NextResponse.json({ error: issue.message }, { status: issue.status });
+    return handleApiError(error);
   }
 }

@@ -35,7 +35,7 @@ export function readEmployeeValuesFromFormData(formData: FormData): EmployeeForm
     officeLocation: readString(formData, "officeLocation"),
     currentAddress: readString(formData, "currentAddress"),
     permanentAddress: readString(formData, "permanentAddress"),
-    workingLocation: readString(formData, "workingLocation"),
+
     accountHolderName: readString(formData, "accountHolderName"),
     accountNumber: readString(formData, "accountNumber"),
     ifscCode: readString(formData, "ifscCode"),

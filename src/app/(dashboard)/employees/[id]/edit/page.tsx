@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { EmployeeForm } from "@/components/EmployeeForm";
 import type { Employee } from "@/types/employee";
 import type { EmployeeFormValues } from "@/lib/employeeSchema";
+import { PageSkeleton } from "@/components/SkeletonLoader";
 import toast from "react-hot-toast";
 
 type EmployeeDetailResponse = { item?: Employee; error?: string };
@@ -63,7 +64,7 @@ export default function EditEmployeePage() {
   }
 
   if (loading) {
-    return <p className="p-6 text-sm text-slate-600 dark:text-slate-300">Loading...</p>;
+    return <PageSkeleton />;
   }
 
   if (!item) {

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import type { Employee } from "@/types/employee";
+import { TableSkeleton } from "@/components/SkeletonLoader";
+import { fetchJsonCached, getCachedJson, invalidateCachedUrl } from "@/lib/clientDataCache";
 
 type EmployeeResponse = { items?: Employee[]; error?: string };
 
@@ -13,23 +15,24 @@ export default function EmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [showUnassigned, setShowUnassigned] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    const url = showUnassigned
+      ? "/api/employees?filter=unassigned&lite=1"
+      : "/api/employees?lite=1";
+    const cached = getCachedJson<EmployeeResponse>(url);
+    if (cached?.items) {
+      setItems(cached.items);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     try {
-      const url = showUnassigned ? "/api/employees?filter=unassigned" : "/api/employees";
-      const res = await fetch(url, { cache: "no-store" });
-      if (res.status === 401) {
-        router.replace("/login");
-        return;
-      }
-      const data = (await res.json()) as EmployeeResponse;
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to load employees");
-      }
+      const data = await fetchJsonCached<EmployeeResponse>(url);
       setItems(data.items || []);
-      setError(null);
+      setError(data.error || null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load employees");
     } finally {
@@ -42,7 +45,7 @@ export default function EmployeesPage() {
   }, [load]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     if (!q) return items;
     return items.filter((item) => {
       return (
@@ -52,7 +55,7 @@ export default function EmployeesPage() {
         item.accessRole.toLowerCase().includes(q)
       );
     });
-  }, [items, query]);
+  }, [items, deferredQuery]);
 
   const roleStats = useMemo(() => {
     return items.reduce(
@@ -75,6 +78,7 @@ export default function EmployeesPage() {
     }
 
     setItems((prev) => prev.filter((item) => item._id !== id));
+    invalidateCachedUrl("/api/employees");
   }
 
   return (
@@ -91,7 +95,7 @@ export default function EmployeesPage() {
                 Employee Management
               </p>
               <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
-                Somesh Bhatnagar
+                Employees
               </h1>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                 Manage team profiles, roles, and account details.
@@ -134,7 +138,7 @@ export default function EmployeesPage() {
           </label>
         </section>
 
-        {loading ? <p className="text-sm text-slate-600 dark:text-slate-300">Loading employees...</p> : null}
+        {loading ? <TableSkeleton columns={6} rows={5} /> : null}
         {error ? <p className="text-sm text-red-700 dark:text-red-300">{error}</p> : null}
 
         {!loading && !error ? (
@@ -179,6 +183,12 @@ export default function EmployeesPage() {
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex gap-2 flex-wrap">
+                        <Link
+                          href={`/employee-dashboard?employeeId=${item._id}`}
+                          className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-600/50 dark:bg-indigo-950/30 dark:text-indigo-300 dark:hover:bg-indigo-950/50 transition-colors"
+                        >
+                          Dashboard
+                        </Link>
                         <Link
                           href={`/employees/${item._id}/view`}
                           className="rounded-md border border-cyan-300 px-2 py-1 text-xs font-medium text-cyan-700 hover:bg-cyan-50 dark:border-cyan-600 dark:text-cyan-300 dark:hover:bg-cyan-950/20"

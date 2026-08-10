@@ -24,6 +24,15 @@ export interface IClient {
   state?: string | null;
   domainDetails?: IDomainDetails;
   status: ClientStatus;
+  leadId?: string | null;
+  assignedStaffId?: string | null;
+  assignedStaffName?: string | null;
+  customerNotes?: string | null;
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  isActive?: boolean;
+  createdBy?: string;
+  updatedBy?: string;
   createdAt?: string;
   updatedAt?: string;
 }

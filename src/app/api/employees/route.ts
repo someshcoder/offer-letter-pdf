@@ -6,6 +6,7 @@ import { saveUploadedFile } from "@/utils/upload";
 import { mapEmployee } from "@/lib/employeeMapper";
 import { getAuthFromCookies } from "@/lib/auth";
 import Employee from "@/models/Employee";
+import { unassignedEmployeeFilter } from "@/lib/tlAssignment";
 
 export async function GET(_req: Request) {
   if (!process.env.MONGODB_URI) {
@@ -26,14 +27,29 @@ export async function GET(_req: Request) {
     const query: any = {};
     const url = new URL(_req.url || "", "http://localhost");
     const filter = url.searchParams.get("filter");
+    const lite = url.searchParams.get("lite") === "1";
+    const limitParam = Number(url.searchParams.get("limit") || 0);
+    const limit = limitParam > 0 ? Math.min(500, limitParam) : undefined;
 
     if (auth.role === "TL") {
       query["reportingTL.email"] = auth.email;
     } else if (filter === "unassigned") {
-      query["reportingTL"] = { $exists: false };
+      Object.assign(query, unassignedEmployeeFilter());
     }
 
-    const rows = await Employee.find(query).sort({ createdAt: -1 }).lean();
+    let dbQuery = Employee.find(query).sort({ createdAt: -1 });
+    if (lite) {
+      dbQuery = dbQuery.select(
+        "_id employeeName mobileNumber email designation role accessRole offeredSalary reportingTL createdAt updatedAt",
+      );
+    } else {
+      dbQuery = dbQuery.select(
+        "-documents.aadharFile -documents.panCardFile -documents.academicDocuments -documents.experienceLetter -documents.passportPhoto -documents.passbookFile",
+      );
+    }
+    if (limit) dbQuery = dbQuery.limit(limit);
+
+    const rows = await dbQuery.lean();
     return NextResponse.json({
       items: rows.map((row) => mapEmployee(row)),
     });
@@ -72,10 +88,17 @@ export async function POST(req: Request) {
       workingType: values.workingType,
       workingMode: values.workingMode,
       officeLocation: values.officeLocation || "",
+      dob: values.dob,
+      maritalStatus: values.maritalStatus,
+      bloodGroup: values.bloodGroup || "",
+      offeredSalary: values.offeredSalary || 0,
+      interviewDate: values.interviewDate || "",
+      joiningDate: values.joiningDate,
+      relationType: values.relationType,
+      relativeName: values.relativeName,
       address: {
         currentAddress: values.currentAddress,
         permanentAddress: values.permanentAddress,
-        workingLocation: values.workingLocation,
       },
       accountDetails: {
         accountHolderName: values.accountHolderName,

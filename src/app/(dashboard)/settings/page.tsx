@@ -1,20 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Layers, ChevronRight, Save, Plus, Trash2, Edit2, GripVertical, Check, X, Upload, Shield } from "lucide-react";
-import CompanySettingsForm from "@/components/settings/CompanySettingsForm";
-import DepartmentManagement from "@/components/settings/DepartmentManagement";
-import RoleManagement from "@/components/settings/RoleManagement";
+import { Building2, Layers, ChevronRight, Shield, Map } from "lucide-react";
+import { ModuleGuide } from "@/components/ModuleGuide";
+
+const CompanySettingsForm = dynamic(
+  () => import("@/components/settings/CompanySettingsForm"),
+);
+const DepartmentManagement = dynamic(
+  () => import("@/components/settings/DepartmentManagement"),
+);
+const RoleManagement = dynamic(() => import("@/components/settings/RoleManagement"));
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<"company" | "departments" | "roles">("company");
+  const [activeTab, setActiveTab] = useState<"company" | "departments" | "roles" | "guide">("company");
 
-  const tabs = [
-    { id: "company", label: "Company Profile", icon: Building2 },
-    { id: "departments", label: "Departments", icon: Layers },
-    { id: "roles", label: "Roles", icon: Shield },
-  ];
+  const tabs = useMemo(
+    () => [
+      { id: "company", label: "Company Profile", icon: Building2 },
+      { id: "departments", label: "Departments", icon: Layers },
+      { id: "roles", label: "Roles", icon: Shield },
+      { id: "guide", label: "Module Guide", icon: Map },
+    ],
+    [],
+  );
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 dark:bg-slate-950/50 sm:p-6 lg:p-8">
@@ -93,6 +104,17 @@ export default function SettingsPage() {
                     transition={{ duration: 0.2 }}
                   >
                     <RoleManagement />
+                  </motion.div>
+                )}
+                {activeTab === "guide" && (
+                  <motion.div
+                    key="guide"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ModuleGuide />
                   </motion.div>
                 )}
               </AnimatePresence>

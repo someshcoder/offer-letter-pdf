@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import connectDB from "@/lib/mongodb";
 import CompanySettings from "@/models/CompanySettings";
 import { saveUploadedFile } from "@/utils/upload";
@@ -63,6 +64,7 @@ export async function POST(req: Request) {
     }
 
     await settings.save();
+    revalidateTag("company-settings", "max");
     return NextResponse.json(settings);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

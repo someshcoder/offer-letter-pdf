@@ -1,90 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import type { AccessRole } from "@/types/employee";
+import { useAuth } from "@/components/AuthProvider";
+import { defaultRouteForRole, isPathAllowedForRole } from "@/lib/navigation";
 
-type MeResponse = {
-  user?: {
-    id: string;
-    email: string;
-    role: AccessRole;
-  } | null;
-};
+function ContentSpinner() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <div
+        className="size-8 animate-spin rounded-full border-2 border-cyan-600 border-t-transparent"
+        aria-label="Loading"
+      />
+    </div>
+  );
+}
 
-const roleRouteMap: Record<AccessRole, string[]> = {
-  Admin: ["/dashboard", "/employees", "/offer-letter", "/tls"],
-  HR: ["/dashboard", "/employees", "/offer-letter", "/tls"],
-  TL: ["/dashboard", "/employees", "/offer-letter", "/tls"],
-  Employee: ["/offer-letter"],
-};
-
-export function AuthGuard({ children }: { children: React.ReactNode }) {
+export const AuthGuard = memo(function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
 
   const isAuthRoute =
     pathname === "/login" || pathname === "/register" || pathname.startsWith("/auth");
 
   useEffect(() => {
-    if (isAuthRoute) {
-      setLoading(false);
-    }
-  }, [isAuthRoute]);
+    if (isAuthRoute || loading) return;
 
-  useEffect(() => {
-    if (isAuthRoute) return;
-
-    let active = true;
-
-    async function validate() {
-      try {
-        const res = await fetch("/api/auth/me", {
-          method: "GET",
-          cache: "no-store",
-        });
-
-        const data = (await res.json()) as MeResponse;
-        const user = data.user || null;
-
-        if (!active) return;
-
-        if (!res.ok || !user) {
-          router.replace("/login");
-          return;
-        }
-
-        const allowedRoutes = roleRouteMap[user.role] || [];
-        const allowed = allowedRoutes.some((route) => pathname.startsWith(route));
-        if (!allowed) {
-          router.replace("/offer-letter");
-          return;
-        }
-      } catch {
-        if (active) {
-          router.replace("/login");
-          return;
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
+    if (!user) {
+      router.replace("/login");
+      return;
     }
 
-    validate();
+    if (!isPathAllowedForRole(pathname, user.role)) {
+      router.replace(defaultRouteForRole(user.role));
+    }
+  }, [isAuthRoute, loading, pathname, router, user]);
 
-    return () => {
-      active = false;
-    };
-  }, [isAuthRoute, pathname, router]);
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
 
-  if (loading && !isAuthRoute) {
-    return (
-      <div className="grid min-h-screen place-items-center bg-slate-100 text-slate-700 dark:bg-slate-950 dark:text-slate-200">
-        <p className="text-sm font-medium">Checking session...</p>
-      </div>
-    );
+  if (loading && !user) {
+    return <ContentSpinner />;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (!isPathAllowedForRole(pathname, user.role)) {
+    return <ContentSpinner />;
   }
 
   return <>{children}</>;
-}
+});

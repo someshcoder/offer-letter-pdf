@@ -56,7 +56,7 @@ export function SendEmailModal({
           Send Email
         </h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Recipient email dalo. &quot;Send Now&quot; par mail draft khulega aur Offer Letter PDF download ho jayega.
+          Enter the recipient email. Clicking &quot;Send Now&quot; opens a mail draft and downloads the Offer Letter PDF.
         </p>
 
         <label className="mt-4 block text-sm font-medium text-slate-800 dark:text-slate-100">

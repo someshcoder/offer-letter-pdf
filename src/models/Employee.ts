@@ -45,6 +45,14 @@ const EmployeeSchema = new Schema(
       default: "Work From Home",
     },
     officeLocation: { type: String, default: "", trim: true },
+    dob: { type: String, required: true, trim: true },
+    maritalStatus: { type: String, required: true, default: "Single" },
+    bloodGroup: { type: String, default: "", trim: true },
+    offeredSalary: { type: Number, default: 0 },
+    interviewDate: { type: String, default: "", trim: true },
+    joiningDate: { type: String, required: true, trim: true },
+    relationType: { type: String, required: true, default: "Father" },
+    relativeName: { type: String, required: true, trim: true },
     address: {
       currentAddress: { type: String, required: true, trim: true },
       permanentAddress: { type: String, required: true, trim: true },
@@ -78,6 +86,9 @@ const EmployeeSchema = new Schema(
 
 EmployeeSchema.index({ email: 1 }, { unique: true });
 EmployeeSchema.index({ mobileNumber: 1 }, { unique: true });
+EmployeeSchema.index({ "reportingTL.email": 1, createdAt: -1 });
+EmployeeSchema.index({ accessRole: 1 });
+EmployeeSchema.index({ createdAt: -1 });
 
 const Employee =
   mongoose.models.Employee || mongoose.model("Employee", EmployeeSchema);

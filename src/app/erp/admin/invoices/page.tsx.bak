@@ -1,0 +1,24 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { PageHeader, TableSkeleton } from "@/components/erp/ui/Shared";
+import { FileCheck, IndianRupee, CheckCircle2 } from "lucide-react";
+import toast from "react-hot-toast";
+
+export default function AdminInvoicesPage() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { fetchAll(); }, []);
+
+  const fetchAll = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/erp/admin/projects"); // Re-using project view which populates all or just fetch invoices
+      // Wait, let's quickly build explicit admin-invoices api route first or just use standard fetch. 
+      // Let's build API for Admin invoices first so they can 'Verify/Settle' them.
+    } catch(e) {}
+  };
+  
+  // Rest of component below...
+}

@@ -23,7 +23,6 @@ type MongoEmployee = {
   address: {
     currentAddress: string;
     permanentAddress: string;
-    workingLocation: string;
   };
   accountDetails: {
     accountHolderName: string;
@@ -52,18 +51,18 @@ type MongoEmployee = {
   updatedAt: Date | string;
 };
 
-export function mapEmployee(doc: MongoEmployee): Employee {
+export function mapEmployee(doc: Partial<MongoEmployee> & Pick<MongoEmployee, "_id" | "employeeName" | "email">): Employee {
   return {
     _id: String(doc._id),
     employeeName: doc.employeeName,
-    mobileNumber: doc.mobileNumber,
+    mobileNumber: doc.mobileNumber || "",
     alternateNumber: doc.alternateNumber || "",
     email: doc.email,
-    designation: doc.designation,
-    role: doc.role,
-    accessRole: doc.accessRole,
-    workingType: doc.workingType,
-    workingMode: doc.workingMode,
+    designation: doc.designation || "",
+    role: doc.role || "Employee",
+    accessRole: doc.accessRole || "Employee",
+    workingType: doc.workingType || "Full Time",
+    workingMode: doc.workingMode || "Work From Home",
     officeLocation: doc.officeLocation || "",
     dob: doc.dob || "",
     maritalStatus: (doc.maritalStatus as any) || "Single",
@@ -74,27 +73,26 @@ export function mapEmployee(doc: MongoEmployee): Employee {
     relationType: (doc.relationType as any) || "Father",
     relativeName: doc.relativeName || "",
     address: {
-      currentAddress: doc.address.currentAddress,
-      permanentAddress: doc.address.permanentAddress,
-      workingLocation: doc.address.workingLocation,
+      currentAddress: doc.address?.currentAddress || "",
+      permanentAddress: doc.address?.permanentAddress || "",
     },
     accountDetails: {
-      accountHolderName: doc.accountDetails.accountHolderName || "",
-      accountNumber: doc.accountDetails.accountNumber,
-      ifscCode: doc.accountDetails.ifscCode,
-      bankName: doc.accountDetails.bankName,
-      upiId: doc.accountDetails.upiId || "",
-      upiHolderName: doc.accountDetails.upiHolderName || "",
+      accountHolderName: doc.accountDetails?.accountHolderName || "",
+      accountNumber: doc.accountDetails?.accountNumber || "",
+      ifscCode: doc.accountDetails?.ifscCode || "",
+      bankName: doc.accountDetails?.bankName || "",
+      upiId: doc.accountDetails?.upiId || "",
+      upiHolderName: doc.accountDetails?.upiHolderName || "",
     },
     documents: {
-      aadharNumber: doc.documents.aadharNumber,
-      aadharFile: doc.documents.aadharFile,
-      panNumber: doc.documents.panNumber || "",
-      panCardFile: doc.documents.panCardFile,
-      academicDocuments: doc.documents.academicDocuments || [],
-      experienceLetter: doc.documents.experienceLetter,
-      passportPhoto: doc.documents.passportPhoto,
-      passbookFile: doc.documents.passbookFile,
+      aadharNumber: doc.documents?.aadharNumber || "",
+      aadharFile: doc.documents?.aadharFile,
+      panNumber: doc.documents?.panNumber || "",
+      panCardFile: doc.documents?.panCardFile,
+      academicDocuments: doc.documents?.academicDocuments || [],
+      experienceLetter: doc.documents?.experienceLetter,
+      passportPhoto: doc.documents?.passportPhoto,
+      passbookFile: doc.documents?.passbookFile,
     },
     reportingTL: doc.reportingTL
       ? {
@@ -106,10 +104,14 @@ export function mapEmployee(doc: MongoEmployee): Employee {
     createdAt:
       doc.createdAt instanceof Date
         ? doc.createdAt.toISOString()
-        : String(doc.createdAt),
+        : doc.createdAt
+          ? String(doc.createdAt)
+          : "",
     updatedAt:
       doc.updatedAt instanceof Date
         ? doc.updatedAt.toISOString()
-        : String(doc.updatedAt),
+        : doc.updatedAt
+          ? String(doc.updatedAt)
+          : "",
   };
 }

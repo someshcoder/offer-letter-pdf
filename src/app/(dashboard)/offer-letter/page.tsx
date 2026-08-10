@@ -1,7 +1,9 @@
-import { getAuthFromCookies } from "@/lib/auth";
-import { OfferLetterClient } from "@/components/OfferLetterClient";
+"use client";
 
-export default async function OfferLetterPage() {
-  const user = await getAuthFromCookies();
+import { OfferLetterClient } from "@/components/OfferLetterClient";
+import { useAuth } from "@/components/AuthProvider";
+
+export default function OfferLetterPage() {
+  const { user } = useAuth();
   return <OfferLetterClient userRole={user?.role ?? null} />;
 }

@@ -1,284 +1,220 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { memo, useEffect, useMemo, useState } from "react";
+import { clearSessionCache } from "@/lib/clientSession";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  getVisibleSections,
+  isNavActive,
+  type NavItem,
+  type NavSection,
+} from "@/lib/navigation";
 import type { AccessRole } from "@/types/employee";
 
 const itemBase =
-  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition";
+  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150";
 const inactive =
   "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white";
 const active =
   "bg-cyan-500/10 text-cyan-800 shadow-sm ring-1 ring-cyan-500/30 dark:bg-white/15 dark:text-white dark:ring-white/20";
+
+const kindClass: Record<NonNullable<NavItem["kind"]>, string> = {
+  Flow: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300",
+  Record: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+  Tool: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300",
+  Document: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+};
 
 type Props = {
   initialTheme: "light" | "dark";
   userRole?: AccessRole;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  companyName?: string;
+  companyLogo?: string | null;
 };
 
-export function AppSidebar({ initialTheme, userRole, mobileOpen, onCloseMobile }: Props) {
-  const pathname = usePathname();
-  const onEditor = pathname === "/" || pathname.startsWith("/offer-letter");
-  const onDashboard = pathname === "/dashboard";
-  const onEmployees = pathname.startsWith("/employees");
-  const onClients = pathname.startsWith("/clients");
-  const onTls = pathname.startsWith("/tls");
-  const onAttendance = pathname.startsWith("/attendance");
-  const onExperienceLetter = pathname.startsWith("/experience-letter");
-  const onOther = pathname.startsWith("/other");
-  const onSettings = pathname.startsWith("/settings");
-  const [docsOpen, setDocsOpen] = useState(false);
+function NavLink({
+  item,
+  pathname,
+  onCloseMobile,
+  compact,
+}: {
+  item: NavItem;
+  pathname: string;
+  onCloseMobile: () => void;
+  compact?: boolean;
+}) {
+  const { href, label, description, kind } = item;
+  const isActive = isNavActive(pathname, href);
+  const router = useRouter();
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      onClick={onCloseMobile}
+      onMouseEnter={() => router.prefetch(href)}
+      onFocus={() => router.prefetch(href)}
+      title={description}
+      className={`${itemBase} items-start ${compact ? "py-2 text-xs" : ""} ${isActive ? active : inactive}`}
+    >
+      <span className={`mt-1 size-1.5 shrink-0 rounded-full ${isActive ? "bg-cyan-600 dark:bg-white" : "bg-slate-300 dark:bg-slate-600"}`} />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className="truncate">{label}</span>
+          {!compact && kind ? (
+            <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold ${kindClass[kind]}`}>
+              {kind}
+            </span>
+          ) : null}
+        </span>
+        {!compact && description ? (
+          <span className={`mt-0.5 block truncate text-[11px] font-normal ${isActive ? "text-cyan-700/80 dark:text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
+            {description}
+          </span>
+        ) : null}
+      </span>
+    </Link>
+  );
+}
 
-  useEffect(() => {
-    if (onEditor || onExperienceLetter || onOther) {
-      setDocsOpen(true);
-    }
-  }, [onEditor, onExperienceLetter, onOther]);
+const MemoNavLink = memo(NavLink);
+
+function CollapsibleSection({
+  section,
+  pathname,
+  onCloseMobile,
+}: {
+  section: NavSection;
+  pathname: string;
+  onCloseMobile: () => void;
+}) {
+  const sectionActive = section.items.some((item) => isNavActive(pathname, item.href));
+  const [open, setOpen] = useState(sectionActive);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        aria-expanded={open}
+        className={`${itemBase} w-full justify-between ${open || sectionActive ? "text-slate-900 dark:text-white" : inactive}`}
+      >
+        <span>{section.label}</span>
+        <svg
+          className={`size-4 transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div className={`grid transition-[grid-template-rows] duration-150 ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+          <div className="ml-3 flex flex-col gap-0.5 border-l border-slate-200 pl-3 pt-1 dark:border-slate-800">
+            {section.items.map((item) => (
+              <MemoNavLink
+                key={item.href}
+                item={item}
+                pathname={pathname}
+                onCloseMobile={onCloseMobile}
+                compact
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export const AppSidebar = memo(function AppSidebar({
+  initialTheme,
+  userRole,
+  mobileOpen,
+  onCloseMobile,
+  companyName,
+  companyLogo,
+}: Props) {
+  const pathname = usePathname();
+  const sections = useMemo(() => getVisibleSections(userRole), [userRole]);
 
   return (
     <>
       <div
-        className={`fixed inset-0 z-30 bg-slate-950/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-30 bg-slate-950/40 transition-opacity duration-150 lg:hidden ${
           mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onCloseMobile}
         aria-hidden
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex h-screen w-72 max-w-[85vw] shrink-0 flex-col border-r border-slate-200 bg-white/90 text-slate-900 shadow-xl backdrop-blur-xl transition-transform duration-300 dark:border-slate-800/80 dark:bg-slate-900 dark:text-slate-100 lg:sticky lg:top-0 lg:z-20 lg:w-72 lg:translate-x-0 lg:shadow-none ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 flex h-screen w-72 max-w-[85vw] shrink-0 flex-col border-r border-slate-200 bg-white text-slate-900 shadow-xl transition-transform duration-150 will-change-transform dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 lg:sticky lg:top-0 lg:z-20 lg:w-72 lg:translate-x-0 lg:shadow-none ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
         aria-label="Main navigation"
       >
-      <div className="border-b border-slate-200 p-5 dark:border-slate-800">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-indigo-400">
-          EMS Suite
-        </p>
-        <h1 className="mt-2 text-lg font-bold leading-tight text-slate-900 dark:text-white">
-          Employee manager
-        </h1>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Control center</p>
-      </div>
-
-      <nav className="flex flex-1 flex-col gap-1 p-3">
-        <Link
-          href="/dashboard"
-          onClick={onCloseMobile}
-          className={`${itemBase} ${onDashboard ? active : inactive}`}
-        >
-          <span
-            className="flex size-8 items-center justify-center rounded-lg bg-slate-200 text-slate-700 dark:bg-slate-600/50 dark:text-slate-200"
-            aria-hidden
-          >
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 10h16M4 14h16M4 18h16"
-              />
-            </svg>
-          </span>
-          Dashboard
-        </Link>
-        <Link
-          href="/employees"
-          onClick={onCloseMobile}
-          className={`${itemBase} ${onEmployees ? active : inactive}`}
-        >
-          <span
-            className="flex size-8 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300"
-            aria-hidden
-          >
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"
-              />
-            </svg>
-          </span>
-          Employees
-        </Link>
-
-        {(userRole === "Admin" || userRole === "HR") && (
-          <>
-            <Link
-              href="/clients"
-              onClick={onCloseMobile}
-              className={`${itemBase} ${onClients ? active : inactive}`}
-            >
-              <span
-                className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
-                aria-hidden
-              >
-                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+        <div className="flex items-center gap-3 border-b border-slate-200 p-5 dark:border-slate-800">
+          {companyLogo ? (
+            <img src={companyLogo} alt="Logo" className="h-10 w-10 rounded-lg bg-slate-50 object-contain p-1 dark:bg-slate-800" />
+          ) : companyName ? (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-600/10">
+              <span className="text-xl font-black text-cyan-600 dark:text-cyan-400">
+                {companyName.charAt(0).toUpperCase()}
               </span>
-              Clients
-            </Link>
-            <Link
-              href="/tls"
-              onClick={onCloseMobile}
-              className={`${itemBase} ${onTls ? active : inactive}`}
-            >
-              <span
-                className="flex size-8 items-center justify-center rounded-lg bg-violet-500/15 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
-                aria-hidden
-              >
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-3-3v6m-4 5h10M4 6h16" />
-                </svg>
-              </span>
-              TL Management
-            </Link>
-            <Link
-              href="/attendance"
-              onClick={onCloseMobile}
-              className={`${itemBase} ${onAttendance ? active : inactive}`}
-            >
-              <span
-                className="flex size-8 items-center justify-center rounded-lg bg-orange-500/15 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300"
-                aria-hidden
-              >
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
-                </svg>
-              </span>
-              Salary Calculator
-            </Link>
+            </div>
+          ) : null}
+          {companyName ? (
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-base font-bold leading-tight text-slate-900 dark:text-white">
+                {companyName}
+              </h1>
+            </div>
+          ) : null}
+        </div>
 
-            <button
-              onClick={() => setDocsOpen(!docsOpen)}
-              className={`${itemBase} w-full justify-between ${docsOpen ? "text-slate-900 dark:text-white" : inactive}`}
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="flex size-8 items-center justify-center rounded-lg bg-slate-500/15 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400"
-                  aria-hidden
-                >
-                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                  </svg>
-                </span>
-                Documents
-              </div>
-              <svg
-                className={`size-4 transition-transform duration-200 ${docsOpen ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+        <nav className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain p-3">
+          {sections.map((section) => (
+            <div key={section.id} className="space-y-1">
+              {!section.collapsible && (
+                <p className="px-3 pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                  {section.label}
+                </p>
+              )}
+              {section.collapsible ? (
+                <CollapsibleSection section={section} pathname={pathname} onCloseMobile={onCloseMobile} />
+              ) : (
+                section.items.map((item) => (
+                  <MemoNavLink
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    onCloseMobile={onCloseMobile}
+                  />
+                ))
+              )}
+            </div>
+          ))}
+        </nav>
 
-            {docsOpen && (
-              <div className="ml-4 flex flex-col gap-1 border-l border-slate-200 pl-4 dark:border-slate-800">
-                <Link
-                  href="/offer-letter"
-                  onClick={onCloseMobile}
-                  className={`${itemBase} ${onEditor ? active : inactive}`}
-                >
-                  <span
-                    className="flex size-8 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300"
-                    aria-hidden
-                  >
-                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                  </span>
-                  Offer letter
-                </Link>
-                <Link
-                  href="/experience-letter"
-                  onClick={onCloseMobile}
-                  className={`${itemBase} ${onExperienceLetter ? active : inactive}`}
-                >
-                  <span
-                    className="flex size-8 items-center justify-center rounded-lg bg-pink-500/15 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300"
-                    aria-hidden
-                  >
-                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </span>
-                  Experience Letter
-                </Link>
-                <Link
-                  href="/other"
-                  onClick={onCloseMobile}
-                  className={`${itemBase} ${onOther ? active : inactive}`}
-                >
-                  <span
-                    className="flex size-8 items-center justify-center rounded-lg bg-teal-500/15 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300"
-                    aria-hidden
-                  >
-                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </span>
-                  Other
-                </Link>
-              </div>
-            )}
-          </>
-        )}
-        {(userRole === "Admin" || userRole === "HR") && (
-          <Link
-            href="/settings"
-            onClick={onCloseMobile}
-            className={`${itemBase} ${onSettings ? active : inactive}`}
+        <div className="space-y-3 border-t border-slate-200 p-4 dark:border-slate-800">
+          <ThemeToggle initialTheme={initialTheme} />
+          <button
+            type="button"
+            onClick={async () => {
+              clearSessionCache();
+              await fetch("/api/auth/logout", { method: "POST" });
+              window.location.href = "/login";
+            }}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            <span
-              className="flex size-8 items-center justify-center rounded-lg bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300"
-              aria-hidden
-            >
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </span>
-            Settings
-          </Link>
-        )}
-      </nav>
-
-      <div className="space-y-3 border-t border-slate-200 p-4 dark:border-slate-800">
-        <ThemeToggle initialTheme={initialTheme} />
-        <button
-          type="button"
-          onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" });
-            window.location.href = "/login";
-          }}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        >
-          Logout
-        </button>
-      </div>
+            Logout
+          </button>
+        </div>
       </aside>
     </>
   );
-}
+});

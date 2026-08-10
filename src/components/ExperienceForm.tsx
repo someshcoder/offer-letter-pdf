@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ExperienceLetterData } from "@/utils/experienceLetterGenerator";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, User, Building, Briefcase, Calendar, Star, MessageSquare, Image as ImageIcon, Check, MapPin, Phone, Globe, Mail, ShieldCheck } from "lucide-react";
 import type { Employee } from "@/types/employee";
+import { formInput, formSection, formSectionDesc, formSectionTitle } from "@/components/ui/FormUi";
+
+const inputClass = formInput;
 
 interface Props {
   data: ExperienceLetterData;
@@ -17,6 +20,7 @@ export const ExperienceForm: React.FC<Props> = ({ data, onChange }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [search, setSearch] = useState("");
   const [companySettings, setCompanySettings] = useState<any>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -42,6 +46,17 @@ export const ExperienceForm: React.FC<Props> = ({ data, onChange }) => {
       }
     };
     fetchEmployees();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleChange = (
@@ -81,20 +96,17 @@ export const ExperienceForm: React.FC<Props> = ({ data, onChange }) => {
     visible: { opacity: 1, x: 0 }
   };
 
-  const inputClass =
-    "mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm transition-all focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-cyan-500 dark:focus:bg-slate-900";
-
   return (
     <motion.div 
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 rounded-[2rem] border border-slate-200 bg-white/70 p-8 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/70"
+      className={`${formSection} space-y-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 sm:space-y-8`}
     >
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Experience Details</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Fill in the details for the experience letter</p>
+          <h2 className={formSectionTitle}>Experience Details</h2>
+          <p className={formSectionDesc}>Fill in the details for the experience letter</p>
         </div>
         <div className="flex gap-2">
            <button 
@@ -113,12 +125,12 @@ export const ExperienceForm: React.FC<Props> = ({ data, onChange }) => {
       </div>
 
       {/* Employee Search */}
-      <motion.div variants={itemVariants} className="relative">
+      <motion.div variants={itemVariants} className="relative" ref={searchRef}>
         <label className="block">
-          <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <span className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
             <Search className="size-4 text-cyan-500" /> Auto-fill from Employee Data
           </span>
-          <div className="relative">
+          <div className="relative min-w-0">
             <input
               type="text"
               placeholder="Search employee name..."
@@ -136,21 +148,22 @@ export const ExperienceForm: React.FC<Props> = ({ data, onChange }) => {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute z-50 mt-2 w-full max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+                  className="absolute z-50 mt-2 w-full min-w-0 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
                 >
                   {filteredEmployees.length > 0 ? (
                     filteredEmployees.map((emp) => (
                       <button
                         key={emp._id}
+                        type="button"
                         onClick={() => selectEmployee(emp)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800"
+                        className="flex w-full min-w-0 items-center gap-3 px-3 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800 sm:px-4"
                       >
-                        <div className="flex size-8 items-center justify-center rounded-full bg-cyan-100 text-cyan-600 dark:bg-cyan-900 dark:text-cyan-300 font-bold text-xs">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-cyan-100 text-cyan-600 dark:bg-cyan-900 dark:text-cyan-300 font-bold text-xs">
                           {emp.employeeName.charAt(0)}
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold dark:text-white">{emp.employeeName}</p>
-                          <p className="text-[10px] text-slate-500">{emp.designation} • {emp.email}</p>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold dark:text-white">{emp.employeeName}</p>
+                          <p className="truncate text-[10px] text-slate-500">{emp.designation} • {emp.email}</p>
                         </div>
                       </button>
                     ))

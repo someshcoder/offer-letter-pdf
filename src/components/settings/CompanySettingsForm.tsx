@@ -1,10 +1,22 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Save, Upload, Loader2, CheckCircle2, Globe, Mail, Phone, MapPin, Building } from "lucide-react";
 import toast from "react-hot-toast";
+import { FormSkeleton } from "@/components/SkeletonLoader";
+import {
+  btnPrimary,
+  formInput,
+  formLabel,
+  formSectionDesc,
+  formSectionTitle,
+  formTextarea,
+  FormField,
+} from "@/components/ui/FormUi";
 
 export default function CompanySettingsForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<any>({
@@ -93,6 +105,7 @@ export default function CompanySettingsForm() {
       if (res.ok) {
         toast.success("Settings saved successfully");
         fetchSettings();
+        router.refresh();
       } else {
         throw new Error("Failed to save");
       }
@@ -104,101 +117,92 @@ export default function CompanySettingsForm() {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-cyan-600" />
-      </div>
-    );
+    return <FormSkeleton rows={3} />;
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Company Information</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Basic details about your organization.</p>
+        <h2 className={formSectionTitle}>Company Information</h2>
+        <p className={formSectionDesc}>Basic details about your organization.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Company Name</label>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <FormField label="Company Name">
           <div className="relative">
-            <Building className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Building className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               name="companyName"
               value={settings.companyName}
               onChange={handleChange}
               placeholder="Enter company name"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-800 dark:bg-slate-900 dark:focus:border-cyan-400"
+              className={`${formInput} pl-10`}
             />
           </div>
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Company Email</label>
+        <FormField label="Company Email">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               name="companyEmail"
               value={settings.companyEmail}
               onChange={handleChange}
               placeholder="contact@company.com"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-800 dark:bg-slate-900 dark:focus:border-cyan-400"
+              className={`${formInput} pl-10`}
             />
           </div>
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mobile Number</label>
+        <FormField label="Mobile Number">
           <div className="relative">
-            <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Phone className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               name="companyMobile"
               value={settings.companyMobile}
               onChange={handleChange}
               placeholder="+91 0000000000"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-800 dark:bg-slate-900 dark:focus:border-cyan-400"
+              className={`${formInput} pl-10`}
             />
           </div>
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Website URL</label>
+        <FormField label="Website URL">
           <div className="relative">
-            <Globe className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Globe className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               name="companyWebsite"
               value={settings.companyWebsite}
               onChange={handleChange}
               placeholder="https://www.company.com"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-800 dark:bg-slate-900 dark:focus:border-cyan-400"
+              className={`${formInput} pl-10`}
             />
           </div>
-        </div>
+        </FormField>
 
-        <div className="space-y-2 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Company Address</label>
+        <FormField label="Company Address" className="md:col-span-2">
           <div className="relative">
-            <MapPin className="absolute left-3 top-3 size-4 text-slate-400" />
+            <MapPin className="pointer-events-none absolute left-3.5 top-3 size-4 text-slate-400" />
             <textarea
               name="companyAddress"
               value={settings.companyAddress}
               onChange={handleChange}
               placeholder="Full office address"
               rows={3}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-800 dark:bg-slate-900 dark:focus:border-cyan-400"
+              className={`${formTextarea} pl-10`}
             />
           </div>
-        </div>
+        </FormField>
       </div>
 
       <hr className="border-slate-100 dark:border-slate-800" />
 
       <div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Assets & Signatures</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Upload your logo and authorized signatures.</p>
+        <h2 className={formSectionTitle}>Assets & Signatures</h2>
+        <p className={formSectionDesc}>Upload your logo and authorized signatures.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Company Logo */}
         <div className="space-y-3">
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Company Logo</label>
@@ -266,12 +270,8 @@ export default function CompanySettingsForm() {
         </div>
       </div>
 
-      <div className="flex justify-end pt-4">
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-cyan-600 px-8 py-3 font-semibold text-white transition-all hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-500/20 active:scale-95 disabled:opacity-50"
-        >
+      <div className="flex justify-end pt-2">
+        <button type="submit" disabled={saving} className={`${btnPrimary} px-8 py-3`}>
           {saving ? (
             <>
               <Loader2 className="size-4 animate-spin" />

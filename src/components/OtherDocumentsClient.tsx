@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import Editor from "./editor/Editor";
+import dynamic from "next/dynamic";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import {
   Upload,
   Download,
@@ -22,6 +29,18 @@ import {
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { TableSkeleton } from "@/components/SkeletonLoader";
+import { Breadcrumb } from "@/components/modules/Breadcrumb";
+import { documentBreadcrumbs } from "@/lib/navigation";
+
+const Editor = dynamic(() => import("./editor/Editor"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex min-h-[400px] items-center justify-center rounded-xl border border-slate-200 bg-white text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+      Loading editor...
+    </div>
+  ),
+});
 
 type SavedItem = {
   id: string;
@@ -49,6 +68,17 @@ export default function OtherDocumentsClient() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const documentRef = useRef<HTMLDivElement>(null);
+  const deferredContent = useDeferredValue(content);
+
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+    [],
+  );
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -65,26 +95,7 @@ export default function OtherDocumentsClient() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setLetterheadImage(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeLetterhead = () => {
-    setLetterheadImage(null);
-  };
-
-  const generatePDFBlob = async (): Promise<string | null> => {
+  const renderDocumentToPdf = useCallback(async () => {
     if (!documentRef.current) return null;
     const element = documentRef.current;
     const canvas = await html2canvas(element, {
@@ -98,7 +109,32 @@ export default function OtherDocumentsClient() {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-    
+    return pdf;
+  }, []);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
+
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setLetterheadImage(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const removeLetterhead = useCallback(() => {
+    setLetterheadImage(null);
+  }, []);
+
+  const generatePDFBlob = async (): Promise<string | null> => {
+    const pdf = await renderDocumentToPdf();
+    if (!pdf) return null;
+
     const arrayBuffer = pdf.output("arraybuffer");
     const bytes = new Uint8Array(arrayBuffer);
     let binary = "";
@@ -106,31 +142,20 @@ export default function OtherDocumentsClient() {
     return btoa(binary);
   };
 
-  const downloadPDF = async () => {
-    if (!documentRef.current) return;
+  const downloadPDF = useCallback(async () => {
     setIsGenerating(true);
     try {
-      const element = documentRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-      });
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      const pdf = await renderDocumentToPdf();
+      if (!pdf) return;
       pdf.save(`${docTitle || "Document"}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [docTitle, renderDocumentToPdf]);
 
-  const saveToDatabase = async () => {
+  const saveToDatabase = useCallback(async () => {
     setIsSaving(true);
     setSaveMsg(null);
     try {
@@ -159,9 +184,9 @@ export default function OtherDocumentsClient() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [content, docTitle, fetchItems, issuedToEmail, issuedToName, letterheadImage, renderDocumentToPdf]);
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     setContent("");
     setLetterheadImage(null);
     setDocTitle("");
@@ -169,23 +194,28 @@ export default function OtherDocumentsClient() {
     setIssuedToEmail("");
     setSaveMsg(null);
     setView("create");
-  };
+  }, []);
 
-  const handleViewPdf = (id: string) => {
+  const handleViewPdf = useCallback((id: string) => {
     window.open(`/api/other-documents/${id}/file`, "_blank");
-  };
+  }, []);
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = useCallback((dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+      return dateFormatter.format(new Date(dateStr));
     } catch {
       return dateStr;
     }
-  };
+  }, [dateFormatter]);
+
+  const formattedItems = useMemo(
+    () =>
+      items.map((item) => ({
+        ...item,
+        createdAtLabel: formatDate(item.createdAt),
+      })),
+    [formatDate, items],
+  );
 
   // Tiptap handles modules internally in Editor.tsx
 
@@ -209,10 +239,10 @@ export default function OtherDocumentsClient() {
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700 dark:text-teal-300">
-                  Document Center
+                  Documents
                 </p>
                 <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                  Create Custom Document
+                  Other Documents
                 </h1>
               </div>
 
@@ -364,7 +394,7 @@ export default function OtherDocumentsClient() {
                       wordBreak: "break-word",
                       color: "#000000"
                     }}
-                    dangerouslySetInnerHTML={{ __html: content }}
+                    dangerouslySetInnerHTML={{ __html: deferredContent }}
                   />
                 </div>
               </div>
@@ -379,6 +409,7 @@ export default function OtherDocumentsClient() {
   return (
     <div className="min-h-screen flex-1 px-3 py-4 sm:px-5 sm:py-6 md:px-6 lg:px-7 xl:px-8">
       <div className="mx-auto w-full max-w-7xl space-y-5 sm:space-y-6">
+        <Breadcrumb items={documentBreadcrumbs("other")} />
         <header className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/70 sm:p-8">
           <div
             className="pointer-events-none absolute inset-0 opacity-70 bg-[radial-gradient(circle_at_15%_10%,rgba(45,212,191,0.16),transparent_42%),radial-gradient(circle_at_80%_0%,rgba(99,102,241,0.14),transparent_38%)]"
@@ -387,10 +418,10 @@ export default function OtherDocumentsClient() {
           <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700 dark:text-teal-300">
-                Document Center
+                Documents
               </p>
               <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                Custom Documents
+                Other Documents
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
                 Manage and create miscellaneous documents on your letterhead.
@@ -408,12 +439,7 @@ export default function OtherDocumentsClient() {
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-7 animate-spin text-teal-500" />
-              <span className="ml-3 text-sm text-slate-500 dark:text-slate-400">
-                Loading documents...
-              </span>
-            </div>
+            <TableSkeleton columns={5} rows={5} />
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="flex size-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
@@ -481,7 +507,7 @@ export default function OtherDocumentsClient() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {items.map((item) => (
+                    {formattedItems.map((item) => (
                       <tr
                         key={item.id}
                         className="transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
@@ -492,7 +518,7 @@ export default function OtherDocumentsClient() {
                           </span>
                         </td>
                         <td className="px-5 py-4 text-slate-700 dark:text-slate-300">
-                          {formatDate(item.createdAt)}
+                          {item.createdAtLabel}
                         </td>
                         <td className="px-5 py-4">
                           <div>
@@ -530,11 +556,11 @@ export default function OtherDocumentsClient() {
 
               {/* Mobile cards view (omitted for brevity but recommended for responsive design) */}
               <div className="md:hidden space-y-3 p-4">
-                {items.map((item) => (
+                {formattedItems.map((item) => (
                     <div key={item.id} className="p-4 border rounded-xl dark:border-slate-800">
                         <div className="flex justify-between items-start mb-2">
                             <span className="text-xs font-bold text-teal-600">{item.refNo}</span>
-                            <span className="text-[10px] text-slate-400">{formatDate(item.createdAt)}</span>
+                            <span className="text-[10px] text-slate-400">{item.createdAtLabel}</span>
                         </div>
                         <p className="font-semibold text-sm mb-1">{item.issuedToName || "—"}</p>
                         <p className="text-xs text-slate-500 mb-3">{item.title}</p>

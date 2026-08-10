@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import connectDB, { getMongoIssue } from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";
 import Employee from "@/models/Employee";
 import { mapEmployee } from "@/lib/employeeMapper";
+import { getMongoIssue } from "@/lib/mongodb";
 
 export async function GET() {
   const emptyStats = {
@@ -28,7 +29,11 @@ export async function GET() {
     const [total, roleWiseRaw, recentRaw] = await Promise.all([
       Employee.countDocuments(),
       Employee.aggregate([{ $group: { _id: "$accessRole", count: { $sum: 1 } } }]),
-      Employee.find().sort({ createdAt: -1 }).limit(5).lean(),
+      Employee.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select("employeeName accessRole designation createdAt updatedAt")
+        .lean(),
     ]);
 
     const roleWise = {
